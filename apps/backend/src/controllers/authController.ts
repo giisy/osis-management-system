@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import { prisma } from '../lib/prisma'
 import { registerSchema, loginSchema } from '../lib/validation/authSchema'
 import { generateToken } from '../lib/jwt'
+import { AuthRequest } from '../middlewares/authMiddleware'
 
 export const register = async (req: Request, res: Response) => {
   const parsed = registerSchema.safeParse(req.body)
@@ -92,6 +93,29 @@ export const login = async (req: Request, res: Response) => {
         email: user.email,
         role: user.role,
       },
+    },
+  })
+}
+
+export const me = async (req: AuthRequest, res: Response) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user!.userId },
+  })
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: 'User tidak ditemukan',
+    })
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
     },
   })
 }
