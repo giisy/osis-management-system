@@ -1,6 +1,8 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { isAxiosError } from 'axios'
 import { loginSchema, type LoginFormData } from '../features/auth/loginSchema'
+import { useLogin } from '../features/auth/useLogin'
 
 export default function LoginPage() {
   const {
@@ -11,9 +13,15 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   })
 
+  const loginMutation = useLogin()
+
   const onSubmit = (data: LoginFormData) => {
-    console.log('Form data:', data)
+    loginMutation.mutate(data)
   }
+
+  const serverErrorMessage = isAxiosError(loginMutation.error)
+    ? loginMutation.error.response?.data?.message
+    : null
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -51,11 +59,16 @@ export default function LoginPage() {
             )}
           </div>
 
+          {serverErrorMessage && (
+            <p className="text-red-500 text-sm text-center">{serverErrorMessage}</p>
+          )}
+
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition"
+            disabled={loginMutation.isPending}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Login
+            {loginMutation.isPending ? 'Memproses...' : 'Login'}
           </button>
         </form>
       </div>
