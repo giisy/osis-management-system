@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
+import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
@@ -9,12 +10,14 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <div className="min-h-screen flex items-center justify-center bg-gray-100">
-              <div className="text-center">
-                <h1 className="text-2xl font-bold text-blue-600">Dashboard</h1>
-                <p className="text-gray-500 mt-2">Login berhasil! (Sprint 3 nanti diisi konten aslinya)</p>
+            <ProtectedRoute>
+              <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-blue-600">Dashboard</h1>
+                  <p className="text-gray-500 mt-2">Login berhasil! (Sprint 3 nanti diisi konten aslinya)</p>
+                </div>
               </div>
-            </div>
+            </ProtectedRoute>
           }
         />
         <Route path="*" element={<Navigate to="/login" replace />} />
