@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import authRoutes from './routes/authRoutes'
 import dashboardRoutes from './routes/dashboardRoutes'
+import anggotaRoutes from './routes/anggotaRoutes'
 
 const app = express()
 const PORT = 4000
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/dashboard', dashboardRoutes)
+app.use('/api/anggota', anggotaRoutes)
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)
