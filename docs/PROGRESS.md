@@ -23,5 +23,16 @@
 - Backend: agregasi via Prisma (`count`, `groupBy`, `findMany`) — tanpa perubahan skema
 - Dokumentasi: `API.md` & `DATABASE.md` diperbarui
 
-## Sprint 4 — CRUD Anggota (Berikutnya)
+## Sprint 4 — CRUD Anggota ✅ (Selesai)
+- Database: tambah field profil User (`nis`, `kelas`, `jenisKelamin`, `noTelepon`, `alamat`)
+- Backend: `GET /api/anggota` (list + paginasi) — role ADMIN, KETUA
+- Backend: `GET /api/anggota/:id` (detail) — role ADMIN, KETUA
+- Backend: `POST /api/anggota` (create) — role SUPER_ADMIN, ADMIN
+- Backend: `PUT /api/anggota/:id` (update) — role SUPER_ADMIN, ADMIN
+- Backend: `DELETE /api/anggota/:id` (delete) — role SUPER_ADMIN, ADMIN
+- Backend: validasi Zod (`anggotaSchema.ts`), cek unique email & NIS, password di-hash
+- Backend: semua endpoint pakai `authenticate` + `authorize`
+- Dokumentasi: `API.md` & `DATABASE.md` diperbarui
+
+## Sprint 5 — Divisi (Berikutnya)
 - Belum dimulai

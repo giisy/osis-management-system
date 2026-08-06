@@ -79,6 +79,176 @@ Authorization: Bearer <token>
 
 ---
 
+## Anggota (CRUD)
+
+> Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
+> - **List & Detail** (GET): butuh role `ADMIN` atau `KETUA`
+> - **Create, Update, Delete** (POST/PUT/DELETE): butuh role `SUPER_ADMIN` atau `ADMIN`
+
+### GET /api/anggota
+List semua anggota (role `ANGGOTA`), dengan paginasi.
+
+**Query params:**
+| Param  | Default | Keterangan                     |
+|--------|---------|-------------------------------|
+| `page` | 1       | Nomor halaman (min 1)          |
+| `limit`| 10      | Jumlah item per halaman (max 100) |
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "...",
+        "name": "...",
+        "email": "...",
+        "role": "ANGGOTA",
+        "nis": "...",
+        "kelas": "...",
+        "jenisKelamin": "L",
+        "noTelepon": "...",
+        "alamat": "...",
+        "createdAt": "...",
+        "updatedAt": "..."
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 35,
+      "totalPages": 4
+    }
+  }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal (page/limit tidak valid)
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+
+---
+
+### GET /api/anggota/:id
+Detail satu anggota berdasarkan ID.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "...",
+    "name": "...",
+    "email": "...",
+    "role": "ANGGOTA",
+    "nis": "...",
+    "kelas": "...",
+    "jenisKelamin": "L",
+    "noTelepon": "...",
+    "alamat": "...",
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Anggota tidak ditemukan
+
+---
+
+### POST /api/anggota
+Tambah anggota baru. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+**Body:**
+```json
+{
+  "name": "string (min 3 karakter)",
+  "email": "string (format email valid)",
+  "password": "string (min 8 karakter)",
+  "role": "ANGGOTA (opsional, default ANGGOTA)",
+  "nis": "string (opsional, unique)",
+  "kelas": "string (opsional)",
+  "jenisKelamin": "L | P (opsional)",
+  "noTelepon": "string (opsional)",
+  "alamat": "string (opsional)"
+}
+```
+
+**Response sukses (201):**
+```json
+{
+  "success": true,
+  "message": "Anggota berhasil ditambahkan",
+  "data": { "id": "...", "name": "...", "email": "...", "role": "...", "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `409` — Email atau NIS sudah terdaftar
+
+---
+
+### PUT /api/anggota/:id
+Edit data anggota. Semua field opsional. Password tidak bisa diubah lewat endpoint ini. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+**Body (semua opsional):**
+```json
+{
+  "name": "string (min 3 karakter)",
+  "email": "string (format email valid)",
+  "role": "ANGGOTA",
+  "nis": "string | null",
+  "kelas": "string | null",
+  "jenisKelamin": "L | P | null",
+  "noTelepon": "string | null",
+  "alamat": "string | null"
+}
+```
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Data anggota berhasil diperbarui",
+  "data": { "id": "...", "name": "...", "email": "...", "role": "...", "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Anggota tidak ditemukan
+- `409` — Email atau NIS sudah digunakan
+
+---
+
+### DELETE /api/anggota/:id
+Hapus anggota. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Anggota berhasil dihapus"
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Anggota tidak ditemukan
+
+---
+
 ## Dashboard
 
 ### GET /api/dashboard/stats
