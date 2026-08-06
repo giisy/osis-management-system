@@ -17,5 +17,11 @@
 - Frontend: React Router + Protected Route
 - Frontend: custom hook useLogin, penyimpanan token di localStorage
 
-## Sprint 3 — Dashboard (Berikutnya)
+## Sprint 3 — Dashboard ✅ (Selesai)
+- Backend: endpoint `GET /api/dashboard/stats` (terproteksi `authenticate`)
+- Backend: statistik `totalAnggota`, `anggotaPerRole`, `anggotaBaruBulanIni`, `anggotaTerbaru` (5 terbaru), `pertumbuhanAnggota` (6 bulan terakhir)
+- Backend: agregasi via Prisma (`count`, `groupBy`, `findMany`) — tanpa perubahan skema
+- Dokumentasi: `API.md` & `DATABASE.md` diperbarui
+
+## Sprint 4 — CRUD Anggota (Berikutnya)
 - Belum dimulai
