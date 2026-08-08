@@ -5,7 +5,10 @@ export const createAnggotaSchema = z.object({
   email: z.string().email('Email tidak valid'),
   password: z.string().min(8, 'Password minimal 8 karakter'),
   role: z.enum(['SUPER_ADMIN', 'ADMIN', 'KETUA', 'ANGGOTA']).optional(),
-  nis: z.string().min(1, 'NIS tidak boleh kosong').optional(),
+  nis: z
+    .string()
+    .regex(/^\d{6,}$/, 'NIS harus berupa angka minimal 6 digit')
+    .optional(),
   kelas: z.string().min(1, 'Kelas tidak boleh kosong').optional(),
   jenisKelamin: z.enum(['L', 'P']).optional(),
   noTelepon: z.string().min(1, 'Nomor telepon tidak boleh kosong').optional(),
@@ -16,7 +19,11 @@ export const updateAnggotaSchema = z.object({
   name: z.string().min(3, 'Nama minimal 3 karakter').optional(),
   email: z.string().email('Email tidak valid').optional(),
   role: z.enum(['SUPER_ADMIN', 'ADMIN', 'KETUA', 'ANGGOTA']).optional(),
-  nis: z.string().min(1, 'NIS tidak boleh kosong').nullable().optional(),
+  nis: z
+    .string()
+    .regex(/^\d{6,}$/, 'NIS harus berupa angka minimal 6 digit')
+    .nullable()
+    .optional(),
   kelas: z.string().min(1, 'Kelas tidak boleh kosong').nullable().optional(),
   jenisKelamin: z.enum(['L', 'P']).nullable().optional(),
   noTelepon: z.string().min(1, 'Nomor telepon tidak boleh kosong').nullable().optional(),
