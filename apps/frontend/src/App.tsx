@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import DashboardLayout from './components/layout/DashboardLayout'
 
 function App() {
   return (
@@ -11,12 +12,12 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                <div className="text-center">
+              <DashboardLayout>
+                <div>
                   <h1 className="text-2xl font-bold text-blue-600">Dashboard</h1>
-                  <p className="text-gray-500 mt-2">Login berhasil! (Sprint 3 nanti diisi konten aslinya)</p>
+                  <p className="text-gray-500 mt-2">Konten statistik nanti di sini</p>
                 </div>
-              </div>
+              </DashboardLayout>
             </ProtectedRoute>
           }
         />
