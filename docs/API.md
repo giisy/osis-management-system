@@ -110,6 +110,7 @@ List semua anggota (role `ANGGOTA`), dengan paginasi.
         "jenisKelamin": "L",
         "noTelepon": "...",
         "alamat": "...",
+        "divisi": { "id": "...", "nama": "..." },
         "createdAt": "...",
         "updatedAt": "..."
       }
@@ -148,6 +149,7 @@ Detail satu anggota berdasarkan ID.
     "jenisKelamin": "L",
     "noTelepon": "...",
     "alamat": "...",
+    "divisi": { "id": "...", "nama": "..." },
     "createdAt": "...",
     "updatedAt": "..."
   }
@@ -175,7 +177,8 @@ Tambah anggota baru. Role `SUPER_ADMIN` atau `ADMIN` saja.
   "kelas": "string (opsional)",
   "jenisKelamin": "L | P (opsional)",
   "noTelepon": "string (opsional)",
-  "alamat": "string (opsional)"
+  "alamat": "string (opsional)",
+  "divisiId": "string (opsional, UUID divisi — anggota langsung dimasukkan ke divisi)"
 }
 ```
 
@@ -192,12 +195,15 @@ Tambah anggota baru. Role `SUPER_ADMIN` atau `ADMIN` saja.
 - `400` — Validasi gagal
 - `401` — Token tidak ditemukan / tidak valid
 - `403` — Role tidak diizinkan
+- `404` — Divisi tidak ditemukan (`divisiId` tidak valid)
 - `409` — Email atau NIS sudah terdaftar
 
 ---
 
 ### PUT /api/anggota/:id
 Edit data anggota. Semua field opsional. Password tidak bisa diubah lewat endpoint ini. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+Assign/pindahkan anggota ke divisi dilakukan lewat field `divisiId`: isi dengan UUID divisi untuk memindahkan, isi `null` untuk mengeluarkan anggota dari divisinya.
 
 **Body (semua opsional):**
 ```json
@@ -209,7 +215,8 @@ Edit data anggota. Semua field opsional. Password tidak bisa diubah lewat endpoi
   "kelas": "string | null",
   "jenisKelamin": "L | P | null",
   "noTelepon": "string | null",
-  "alamat": "string | null"
+  "alamat": "string | null",
+  "divisiId": "string | null"
 }
 ```
 
@@ -226,7 +233,7 @@ Edit data anggota. Semua field opsional. Password tidak bisa diubah lewat endpoi
 - `400` — Validasi gagal
 - `401` — Token tidak ditemukan / tidak valid
 - `403` — Role tidak diizinkan
-- `404` — Anggota tidak ditemukan
+- `404` — Anggota tidak ditemukan / divisi tidak ditemukan (`divisiId` tidak valid)
 - `409` — Email atau NIS sudah digunakan
 
 ---
@@ -246,6 +253,153 @@ Hapus anggota. Role `SUPER_ADMIN` atau `ADMIN` saja.
 - `401` — Token tidak ditemukan / tidak valid
 - `403` — Role tidak diizinkan
 - `404` — Anggota tidak ditemukan
+
+---
+
+## Divisi (CRUD)
+
+> Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
+> - **List & Detail** (GET): semua role yang login
+> - **Create, Update, Delete** (POST/PUT/DELETE): butuh role `SUPER_ADMIN` atau `ADMIN`
+
+### GET /api/divisi
+List semua divisi beserta jumlah anggotanya.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "...",
+      "nama": "Divisi Humas",
+      "deskripsi": "...",
+      "jumlahAnggota": 12,
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ]
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+
+---
+
+### GET /api/divisi/:id
+Detail satu divisi + daftar anggotanya (urut nama, tanpa `password`).
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "...",
+    "nama": "Divisi Humas",
+    "deskripsi": "...",
+    "createdAt": "...",
+    "updatedAt": "...",
+    "anggota": [
+      {
+        "id": "...",
+        "name": "...",
+        "email": "...",
+        "role": "ANGGOTA",
+        "nis": "...",
+        "kelas": "...",
+        "jenisKelamin": "L",
+        "noTelepon": "...",
+        "alamat": "...",
+        "createdAt": "...",
+        "updatedAt": "..."
+      }
+    ]
+  }
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `404` — Divisi tidak ditemukan
+
+---
+
+### POST /api/divisi
+Tambah divisi baru. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+**Body:**
+```json
+{
+  "nama": "string (min 3 karakter, unique)",
+  "deskripsi": "string (opsional)"
+}
+```
+
+**Response sukses (201):**
+```json
+{
+  "success": true,
+  "message": "Divisi berhasil ditambahkan",
+  "data": { "id": "...", "nama": "...", "deskripsi": "...", "createdAt": "...", "updatedAt": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `409` — Nama divisi sudah digunakan
+
+---
+
+### PUT /api/divisi/:id
+Edit data divisi. Semua field opsional. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+**Body (semua opsional):**
+```json
+{
+  "nama": "string (min 3 karakter, unique)",
+  "deskripsi": "string | null"
+}
+```
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Data divisi berhasil diperbarui",
+  "data": { "id": "...", "nama": "...", "deskripsi": "...", "createdAt": "...", "updatedAt": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Divisi tidak ditemukan
+- `409` — Nama divisi sudah digunakan oleh divisi lain
+
+---
+
+### DELETE /api/divisi/:id
+Hapus divisi. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+Divisi yang **masih memiliki anggota tidak bisa dihapus** (response `409` berisi jumlah anggotanya) — pindahkan anggotanya terlebih dahulu lewat `PUT /api/anggota/:id` (field `divisiId`).
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Divisi berhasil dihapus"
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Divisi tidak ditemukan
+- `409` — Divisi masih memiliki anggota
 
 ---
 

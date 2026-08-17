@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
+import AnggotaPage from './pages/AnggotaPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/layout/DashboardLayout'
 
@@ -15,6 +16,16 @@ function App() {
             <ProtectedRoute>
               <DashboardLayout>
                 <DashboardPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/anggota"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <AnggotaPage />
               </DashboardLayout>
             </ProtectedRoute>
           }

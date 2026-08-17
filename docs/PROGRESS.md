@@ -34,5 +34,13 @@
 - Backend: semua endpoint pakai `authenticate` + `authorize`
 - Dokumentasi: `API.md` & `DATABASE.md` diperbarui
 
-## Sprint 5 — Divisi (Berikutnya)
-- Belum dimulai
+## Sprint 5 — Divisi ✅ (Selesai)
+- Database: model `Divisi` (`nama` unique, `deskripsi` opsional) + field `divisiId` (nullable) di `User`, relasi one-to-many, `onDelete: Restrict`
+- Backend: `GET /api/divisi` (list + jumlah anggota) — semua role yang login (authenticate)
+- Backend: `GET /api/divisi/:id` (detail + daftar anggota) — semua role yang login (authenticate)
+- Backend: `POST /api/divisi` (create) — role SUPER_ADMIN, ADMIN
+- Backend: `PUT /api/divisi/:id` (update) — role SUPER_ADMIN, ADMIN
+- Backend: `DELETE /api/divisi/:id` (delete, tolak `409` jika masih ada anggota) — role SUPER_ADMIN, ADMIN
+- Backend: assign/pindah divisi anggota via `POST/PUT /api/anggota` (field `divisiId`, `null` = keluar divisi)
+- Backend: validasi Zod (`divisiSchema.ts`), cek unique nama divisi, cek divisi exists saat assign anggota
+- Dokumentasi: `API.md` & `DATABASE.md` diperbarui
