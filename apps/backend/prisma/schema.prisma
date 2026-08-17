@@ -24,8 +24,19 @@ model User {
   jenisKelamin String?
   noTelepon    String?
   alamat       String?
+  divisiId     String?
+  divisi       Divisi?  @relation("DivisiAnggota", fields: [divisiId], references: [id], onDelete: Restrict)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model Divisi {
+  id        String   @id @default(uuid())
+  nama      String   @unique
+  deskripsi String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  anggota   User[]   @relation("DivisiAnggota")
 }
 
 enum Role {

@@ -13,6 +13,7 @@ export const createAnggotaSchema = z.object({
   jenisKelamin: z.enum(['L', 'P']).optional(),
   noTelepon: z.string().min(1, 'Nomor telepon tidak boleh kosong').optional(),
   alamat: z.string().min(1, 'Alamat tidak boleh kosong').optional(),
+  divisiId: z.string().uuid('ID divisi tidak valid').optional(),
 })
 
 export const updateAnggotaSchema = z.object({
@@ -28,6 +29,7 @@ export const updateAnggotaSchema = z.object({
   jenisKelamin: z.enum(['L', 'P']).nullable().optional(),
   noTelepon: z.string().min(1, 'Nomor telepon tidak boleh kosong').nullable().optional(),
   alamat: z.string().min(1, 'Alamat tidak boleh kosong').nullable().optional(),
+  divisiId: z.string().uuid('ID divisi tidak valid').nullable().optional(),
 })
 
 export const paginationSchema = z.object({
