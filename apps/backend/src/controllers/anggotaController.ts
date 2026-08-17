@@ -9,6 +9,21 @@ import {
 } from '../lib/validation/anggotaSchema'
 import { AuthRequest } from '../middlewares/authMiddleware'
 
+const anggotaSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  nis: true,
+  kelas: true,
+  jenisKelamin: true,
+  noTelepon: true,
+  alamat: true,
+  divisi: { select: { id: true, nama: true } },
+  createdAt: true,
+  updatedAt: true,
+}
+
 export const listAnggota = async (req: AuthRequest, res: Response) => {
   const parsed = paginationSchema.safeParse(req.query)
 
@@ -25,19 +40,7 @@ export const listAnggota = async (req: AuthRequest, res: Response) => {
   const [items, total] = await Promise.all([
     prisma.user.findMany({
       where: { role: 'ANGGOTA' },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        nis: true,
-        kelas: true,
-        jenisKelamin: true,
-        noTelepon: true,
-        alamat: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: anggotaSelect,
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
@@ -64,19 +67,7 @@ export const getAnggota = async (req: AuthRequest, res: Response) => {
 
   const user = await prisma.user.findFirst({
     where: { id, role: 'ANGGOTA' },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      nis: true,
-      kelas: true,
-      jenisKelamin: true,
-      noTelepon: true,
-      alamat: true,
-      createdAt: true,
-      updatedAt: true,
-    },
+    select: anggotaSelect,
   })
 
   if (!user) {
@@ -103,7 +94,7 @@ export const createAnggota = async (req: AuthRequest, res: Response) => {
     })
   }
 
-  const { name, email, password, role, nis, kelas, jenisKelamin, noTelepon, alamat } =
+  const { name, email, password, role, nis, kelas, jenisKelamin, noTelepon, alamat, divisiId } =
     parsed.data
 
   const existingUser = await prisma.user.findUnique({ where: { email } })
@@ -125,6 +116,16 @@ export const createAnggota = async (req: AuthRequest, res: Response) => {
     }
   }
 
+  if (divisiId) {
+    const existingDivisi = await prisma.divisi.findUnique({ where: { id: divisiId } })
+    if (!existingDivisi) {
+      return res.status(404).json({
+        success: false,
+        message: 'Divisi tidak ditemukan',
+      })
+    }
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10)
 
   try {
@@ -139,20 +140,9 @@ export const createAnggota = async (req: AuthRequest, res: Response) => {
         jenisKelamin,
         noTelepon,
         alamat,
+        divisiId,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        nis: true,
-        kelas: true,
-        jenisKelamin: true,
-        noTelepon: true,
-        alamat: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: anggotaSelect,
     })
 
     res.status(201).json({
@@ -168,6 +158,15 @@ export const createAnggota = async (req: AuthRequest, res: Response) => {
       return res.status(409).json({
         success: false,
         message: 'Email atau NIS sudah terdaftar',
+      })
+    }
+    if (
+      error instanceof PrismaClientKnownRequestError &&
+      error.code === 'P2003'
+    ) {
+      return res.status(404).json({
+        success: false,
+        message: 'Divisi tidak ditemukan',
       })
     }
     throw error
@@ -222,23 +221,23 @@ export const updateAnggota = async (req: AuthRequest, res: Response) => {
     }
   }
 
+  if (parsed.data.divisiId) {
+    const divisi = await prisma.divisi.findUnique({
+      where: { id: parsed.data.divisiId },
+    })
+    if (!divisi) {
+      return res.status(404).json({
+        success: false,
+        message: 'Divisi tidak ditemukan',
+      })
+    }
+  }
+
   try {
     const user = await prisma.user.update({
       where: { id },
       data: parsed.data,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        nis: true,
-        kelas: true,
-        jenisKelamin: true,
-        noTelepon: true,
-        alamat: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: anggotaSelect,
     })
 
     res.status(200).json({
@@ -254,6 +253,15 @@ export const updateAnggota = async (req: AuthRequest, res: Response) => {
       return res.status(409).json({
         success: false,
         message: 'Email atau NIS sudah digunakan',
+      })
+    }
+    if (
+      error instanceof PrismaClientKnownRequestError &&
+      error.code === 'P2003'
+    ) {
+      return res.status(404).json({
+        success: false,
+        message: 'Divisi tidak ditemukan',
       })
     }
     throw error
