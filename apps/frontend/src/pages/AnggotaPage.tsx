@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import { useAnggotaList } from '../features/anggota/useAnggotaList'
 import AnggotaCard from '../features/anggota/AnggotaCard'
 
@@ -18,14 +20,25 @@ export default function AnggotaPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Anggota</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Anggota</h1>
+        <Link
+          to="/anggota/create"
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+        >
+          <Plus size={16} />
+          Tambah
+        </Link>
+      </div>
 
       {items.length === 0 ? (
         <p className="text-gray-500">Belum ada anggota.</p>
       ) : (
         <div className="space-y-3">
           {items.map((anggota) => (
-            <AnggotaCard key={anggota.id} anggota={anggota} />
+            <Link key={anggota.id} to={`/anggota/${anggota.id}/edit`}>
+              <AnggotaCard anggota={anggota} />
+            </Link>
           ))}
         </div>
       )}
