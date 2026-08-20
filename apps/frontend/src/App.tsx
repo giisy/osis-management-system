@@ -4,6 +4,9 @@ import DashboardPage from './pages/DashboardPage'
 import AnggotaPage from './pages/AnggotaPage'
 import AnggotaCreatePage from './pages/AnggotaCreatePage'
 import AnggotaEditPage from './pages/AnggotaEditPage'
+import DivisiPage from './pages/DivisiPage'
+import DivisiCreatePage from './pages/DivisiCreatePage'
+import DivisiEditPage from './pages/DivisiEditPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/layout/DashboardLayout'
 
@@ -48,6 +51,36 @@ function App() {
             <ProtectedRoute>
               <DashboardLayout>
                 <AnggotaEditPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/divisi"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <DivisiPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/divisi/create"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <DivisiCreatePage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/divisi/:id/edit"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <DivisiEditPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
