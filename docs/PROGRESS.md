@@ -44,3 +44,14 @@
 - Backend: assign/pindah divisi anggota via `POST/PUT /api/anggota` (field `divisiId`, `null` = keluar divisi)
 - Backend: validasi Zod (`divisiSchema.ts`), cek unique nama divisi, cek divisi exists saat assign anggota
 - Dokumentasi: `API.md` & `DATABASE.md` diperbarui
+
+## Sprint 6 — Agenda ✅ (Selesai)
+- Database: model `Agenda` (`judul`, `deskripsi`/`lokasi` opsional, `waktuMulai` wajib, `waktuSelesai` opsional, `createdBy` FK ke User, `onDelete: Restrict`) — apply via `prisma db push`
+- Backend: `GET /api/agenda` (list semua, urut `waktuMulai` asc) — semua role yang login (authenticate)
+- Backend: `GET /api/agenda/upcoming?limit=5` (agenda terdekat untuk card dashboard, kegiatan yang sedang berjalan tetap masuk) — semua role yang login
+- Backend: `GET /api/agenda/:id` (detail) — semua role yang login
+- Backend: `POST /api/agenda` (create, `createdBy` otomatis dari token) — role SUPER_ADMIN, ADMIN, KETUA
+- Backend: `PUT /api/agenda/:id` (update, validasi `waktuSelesai > waktuMulai` termasuk terhadap nilai lama) — role SUPER_ADMIN, ADMIN, KETUA
+- Backend: `DELETE /api/agenda/:id` (delete) — role SUPER_ADMIN, ADMIN
+- Backend: validasi Zod (`agendaSchema.ts`) — tanggal ISO via `z.coerce.date()`, tanggal masa lalu dibolehkan (arsip kegiatan)
+- Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui

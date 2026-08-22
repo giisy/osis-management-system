@@ -434,12 +434,179 @@ Authorization: Bearer <token>
 }
 ```
 
-**Penjelasan field:**
-- `totalAnggota` — jumlah seluruh user terdaftar.
-- `anggotaPerRole` — breakdown jumlah anggota per role.
-- `anggotaBaruBulanIni` — jumlah user yang terdaftar pada bulan berjalan.
-- `anggotaTerbaru` — 5 anggota terdaftar terbaru (urut `createdAt` desc), tanpa email (tampilan ringkas).
-- `pertumbuhanAnggota` — tren pendaftaran 6 bulan terakhir (termasuk bulan berjalan).
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+
+---
+
+## Agenda
+
+Semua endpoint agenda butuh header `Authorization: Bearer <token>`.
+
+### GET /api/agenda
+Daftar semua agenda, urut berdasarkan `waktuMulai` ascending (terdekat dulu). Termasuk agenda yang sudah lewat. Semua role yang login.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "...",
+      "judul": "Rapat Bulanan OSIS",
+      "deskripsi": "...",
+      "lokasi": "Aula Sekolah",
+      "waktuMulai": "2026-08-25T08:00:00.000Z",
+      "waktuSelesai": "2026-08-25T10:00:00.000Z",
+      "creator": { "id": "...", "name": "..." },
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ]
+}
+```
 
 **Response gagal:**
 - `401` — Token tidak ditemukan / tidak valid
+
+---
+
+### GET /api/agenda/upcoming
+Agenda terdekat untuk card dashboard — hanya agenda yang **belum selesai** (`waktuMulai >= now` atau `waktuSelesai >= now`, kegiatan yang sedang berjalan tetap masuk), urut `waktuMulai` asc. Semua role yang login.
+
+**Query (opsional):**
+- `limit` — jumlah maksimal agenda, default `5`, maksimal `50`
+
+Contoh: `GET /api/agenda/upcoming?limit=3`
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "...",
+      "judul": "Rapat Bulanan OSIS",
+      "deskripsi": "...",
+      "lokasi": "Aula Sekolah",
+      "waktuMulai": "2026-08-25T08:00:00.000Z",
+      "waktuSelesai": "2026-08-25T10:00:00.000Z",
+      "creator": { "id": "...", "name": "..." },
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ]
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal (limit tidak valid)
+- `401` — Token tidak ditemukan / tidak valid
+
+---
+
+### GET /api/agenda/:id
+Detail satu agenda. Semua role yang login.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "...",
+    "judul": "Rapat Bulanan OSIS",
+    "deskripsi": "...",
+    "lokasi": "Aula Sekolah",
+    "waktuMulai": "2026-08-25T08:00:00.000Z",
+    "waktuSelesai": "2026-08-25T10:00:00.000Z",
+    "creator": { "id": "...", "name": "..." },
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `404` — Agenda tidak ditemukan
+
+---
+
+### POST /api/agenda
+Tambah agenda baru. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`. Field `createdBy` diisi otomatis dari token (user yang login), bukan dari body.
+
+**Body:**
+```json
+{
+  "judul": "string (min 3 karakter)",
+  "deskripsi": "string (opsional)",
+  "lokasi": "string (opsional)",
+  "waktuMulai": "string tanggal ISO 8601 (wajib, boleh tanggal masa lalu)",
+  "waktuSelesai": "string tanggal ISO 8601 (opsional, harus setelah waktuMulai)"
+}
+```
+
+**Response sukses (201):**
+```json
+{
+  "success": true,
+  "message": "Agenda berhasil ditambahkan",
+  "data": { "id": "...", "judul": "...", "waktuMulai": "...", "...": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal (termasuk `waktuSelesai` yang lebih awal dari `waktuMulai`)
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+
+---
+
+### PUT /api/agenda/:id
+Edit agenda. Semua field opsional. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+
+**Body (semua opsional):**
+```json
+{
+  "judul": "string (min 3 karakter)",
+  "deskripsi": "string | null",
+  "lokasi": "string | null",
+  "waktuMulai": "string tanggal ISO 8601",
+  "waktuSelesai": "string | null (tanggal ISO 8601)"
+}
+```
+
+Catatan: validasi `waktuSelesai > waktuMulai` juga dihitung terhadap nilai lama di database jika hanya salah satu yang dikirim.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Data agenda berhasil diperbarui",
+  "data": { "id": "...", "judul": "...", "waktuMulai": "...", "...": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Agenda tidak ditemukan
+
+---
+
+### DELETE /api/agenda/:id
+Hapus agenda. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Agenda berhasil dihapus"
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Agenda tidak ditemukan
