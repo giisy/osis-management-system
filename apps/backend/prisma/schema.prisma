@@ -26,6 +26,7 @@ model User {
   alamat       String?
   divisiId     String?
   divisi       Divisi?  @relation("DivisiAnggota", fields: [divisiId], references: [id], onDelete: Restrict)
+  agendaDibuat Agenda[] @relation("AgendaCreator")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -44,4 +45,17 @@ enum Role {
   ADMIN
   KETUA
   ANGGOTA
+}
+
+model Agenda {
+  id           String    @id @default(uuid())
+  judul        String
+  deskripsi    String?
+  lokasi       String?
+  waktuMulai   DateTime
+  waktuSelesai DateTime?
+  createdBy    String
+  creator      User      @relation("AgendaCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
