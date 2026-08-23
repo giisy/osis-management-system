@@ -14,21 +14,22 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  name         String
-  email        String   @unique
-  password     String
-  role         Role     @default(ANGGOTA)
-  nis          String?  @unique
-  kelas        String?
-  jenisKelamin String?
-  noTelepon    String?
-  alamat       String?
-  divisiId     String?
-  divisi       Divisi?  @relation("DivisiAnggota", fields: [divisiId], references: [id], onDelete: Restrict)
-  agendaDibuat Agenda[] @relation("AgendaCreator")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String       @id @default(uuid())
+  name             String
+  email            String       @unique
+  password         String
+  role             Role         @default(ANGGOTA)
+  nis              String?      @unique
+  kelas            String?
+  jenisKelamin     String?
+  noTelepon        String?
+  alamat           String?
+  divisiId         String?
+  divisi           Divisi?      @relation("DivisiAnggota", fields: [divisiId], references: [id], onDelete: Restrict)
+  agendaDibuat     Agenda[]     @relation("AgendaCreator")
+  pengumumanDibuat Pengumuman[] @relation("PengumumanCreator")
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 }
 
 model Divisi {
@@ -58,4 +59,14 @@ model Agenda {
   creator      User      @relation("AgendaCreator", fields: [createdBy], references: [id], onDelete: Restrict)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+model Pengumuman {
+  id        String   @id @default(uuid())
+  judul     String
+  isi       String
+  createdBy String
+  creator   User     @relation("PengumumanCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
