@@ -7,6 +7,9 @@ import AnggotaEditPage from './pages/AnggotaEditPage'
 import DivisiPage from './pages/DivisiPage'
 import DivisiCreatePage from './pages/DivisiCreatePage'
 import DivisiEditPage from './pages/DivisiEditPage'
+import AgendaPage from './pages/AgendaPage'
+import AgendaCreatePage from './pages/AgendaCreatePage'
+import AgendaEditPage from './pages/AgendaEditPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/layout/DashboardLayout'
 
@@ -81,6 +84,36 @@ function App() {
             <ProtectedRoute>
               <DashboardLayout>
                 <DivisiEditPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/agenda"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <AgendaPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/agenda/create"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <AgendaCreatePage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/agenda/:id/edit"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <AgendaEditPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
