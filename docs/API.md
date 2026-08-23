@@ -610,3 +610,124 @@ Hapus agenda. Role `SUPER_ADMIN` atau `ADMIN` saja.
 - `401` — Token tidak ditemukan / tidak valid
 - `403` — Role tidak diizinkan
 - `404` — Agenda tidak ditemukan
+
+
+## Pengumuman (CRUD)
+
+> Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
+> - **List & Detail** (GET): semua role yang login
+> - **Create, Update** (POST/PUT): butuh role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`
+> - **Delete**: butuh role `SUPER_ADMIN` atau `ADMIN`
+
+### GET /api/pengumuman
+List semua pengumuman, urut `createdAt` descending (terbaru dulu).
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "...",
+      "judul": "Rapat Rutin",
+      "isi": "...",
+      "creator": { "id": "...", "name": "..." },
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ]
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+
+---
+
+### GET /api/pengumuman/:id
+Detail satu pengumuman.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": { "id": "...", "judul": "...", "isi": "...", "creator": { "..." }, "createdAt": "...", "updatedAt": "..." }
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `404` — Pengumuman tidak ditemukan
+
+---
+
+### POST /api/pengumuman
+Tambah pengumuman baru. `createdBy` diisi otomatis dari token.
+
+**Body:**
+```json
+{
+  "judul": "string (min 3, max 200 karakter)",
+  "isi": "string (min 10, max 5000 karakter)"
+}
+```
+
+**Response sukses (201):**
+```json
+{
+  "success": true,
+  "message": "Pengumuman berhasil ditambahkan",
+  "data": { "id": "...", "judul": "...", "isi": "...", "creator": { "..." }, "createdAt": "...", "updatedAt": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+
+---
+
+### PUT /api/pengumuman/:id
+Edit pengumuman. Semua field opsional.
+
+**Body (semua opsional):**
+```json
+{
+  "judul": "string (min 3, max 200 karakter)",
+  "isi": "string (min 10, max 5000 karakter)"
+}
+```
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Pengumuman berhasil diperbarui",
+  "data": { "id": "...", "judul": "...", "isi": "...", "creator": { "..." }, "createdAt": "...", "updatedAt": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Pengumuman tidak ditemukan
+
+---
+
+### DELETE /api/pengumuman/:id
+Hapus pengumuman. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Pengumuman berhasil dihapus"
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Pengumuman tidak ditemukan

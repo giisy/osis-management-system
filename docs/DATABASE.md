@@ -40,7 +40,19 @@
 | createdAt     | DateTime  | Auto                                                 |
 | updatedAt     | DateTime  | Auto                                                 |
 
+## Pengumuman
+| Field     | Type     | Keterangan                          |
+|-----------|----------|--------------------------------------|
+| id        | String   | UUID, primary key                    |
+| judul     | String   | Judul pengumuman (max 200 karakter)  |
+| isi       | String   | Isi pengumuman (max 5000 karakter)   |
+| createdBy | String   | FK ke User (pembuat pengumuman)      |
+| createdAt | DateTime | Auto                                  |
+| updatedAt | DateTime | Auto                                  |
+
 ## Catatan Relasi
+### Sprint 7 — Pengumuman
+Relasi one-to-many: satu `User` bisa membuat banyak `Pengumuman` (lewat FK `Pengumuman.createdBy`, diisi otomatis dari token). Referential action: `onDelete: Restrict`, konsisten dengan pola Agenda. Perubahan skema di-apply lewat `prisma db push`.
 
 ### Sprint 5 — Divisi
 Relasi one-to-many: satu `User` maksimal tergabung dalam satu `Divisi` (lewat FK `User.divisiId`), satu `Divisi` boleh memiliki banyak `User`. Referential action di database: `onDelete: Restrict` — `Divisi` yang masih memiliki anggota tidak bisa dihapus (controller juga menolak lebih dulu dengan pesan jumlah anggota). Perubahan skema di-apply lewat `prisma db push` (tanpa migration file), konsisten dengan Sprint 4.

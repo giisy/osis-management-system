@@ -55,3 +55,13 @@
 - Backend: `DELETE /api/agenda/:id` (delete) — role SUPER_ADMIN, ADMIN
 - Backend: validasi Zod (`agendaSchema.ts`) — tanggal ISO via `z.coerce.date()`, tanggal masa lalu dibolehkan (arsip kegiatan)
 - Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui
+
+## Sprint 7 — Pengumuman ✅ (Selesai)
+- Database: model `Pengumuman` (`judul`, `isi`, `createdBy` FK ke User, `onDelete: Restrict`) — apply via `prisma db push`
+- Backend: `GET /api/pengumuman` (list, urut `createdAt` desc) — semua role yang login
+- Backend: `GET /api/pengumuman/:id` (detail) — semua role yang login
+- Backend: `POST /api/pengumuman` (create, `createdBy` otomatis dari token) — role SUPER_ADMIN, ADMIN, KETUA
+- Backend: `PUT /api/pengumuman/:id` (update) — role SUPER_ADMIN, ADMIN, KETUA
+- Backend: `DELETE /api/pengumuman/:id` (delete) — role SUPER_ADMIN, ADMIN
+- Backend: validasi Zod (`pengumumanSchema.ts`)
+- Dokumentasi: `API.md` & `DATABASE.md` diperbarui
