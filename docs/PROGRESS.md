@@ -65,3 +65,12 @@
 - Backend: `DELETE /api/pengumuman/:id` (delete) — role SUPER_ADMIN, ADMIN
 - Backend: validasi Zod (`pengumumanSchema.ts`)
 - Dokumentasi: `API.md` & `DATABASE.md` diperbarui
+
+## Sprint 8 — Absensi ✅ (Selesai)
+- Database: model `Absensi` (`agendaId` FK ke Agenda `onDelete: Cascade`, `userId` FK ke User `onDelete: Restrict`, `status` enum HADIR/IZIN/ALFA default HADIR, `waktuCheckIn`) + unique gabungan `(agendaId, userId)` — apply via `prisma db push`
+- Backend: `POST /api/absensi/:agendaId/checkin` (check-in diri sendiri, status HADIR, `userId` dari token, hanya bisa setelah `waktuMulai`, double check-in ditolak `409`) — semua role yang login
+- Backend: `GET /api/absensi/saya` (riwayat kehadiran sendiri, urut `agenda.waktuMulai` desc) — semua role yang login
+- Backend: `GET /api/absensi/agenda/:agendaId` (rekap 1 agenda: daftar absensi + hitungan per status via `groupBy`) — role SUPER_ADMIN, ADMIN, KETUA
+- Backend: `POST /api/absensi/:agendaId/tandai` (tandai/koreksi manual via upsert, tanpa batasan waktu) — role SUPER_ADMIN, ADMIN, KETUA
+- Backend: validasi Zod (`absensiSchema.ts`) — `userId` UUID, `status` enum
+- Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui

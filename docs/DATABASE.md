@@ -15,6 +15,8 @@
 | alamat       | String?  | Alamat (opsional)                    |
 | divisiId     | String?  | FK ke Divisi (opsional)              |
 | agendaDibuat | Agenda[] | Relasi balik: agenda yang dibuat user |
+| pengumumanDibuat | Pengumuman[] | Relasi balik: pengumuman yang dibuat user |
+| absensi | Absensi[] | Relasi balik: riwayat absensi user |
 | createdAt    | DateTime | Auto                                  |
 | updatedAt    | DateTime | Auto                                  |
 
@@ -37,6 +39,7 @@
 | waktuMulai    | DateTime  | Tanggal + jam mulai (ISO 8601), wajib                |
 | waktuSelesai  | DateTime? | Tanggal + jam selesai (opsional, harus > waktuMulai) |
 | createdBy     | String    | FK ke User (pembuat agenda)                          |
+| absensi       | Absensi[] | Relasi balik: daftar absensi kegiatan                |
 | createdAt     | DateTime  | Auto                                                 |
 | updatedAt     | DateTime  | Auto                                                 |
 
@@ -50,7 +53,22 @@
 | createdAt | DateTime | Auto                                  |
 | updatedAt | DateTime | Auto                                  |
 
+## Absensi
+| Field        | Type          | Keterangan                                           |
+|--------------|---------------|------------------------------------------------------|
+| id           | String        | UUID, primary key                                    |
+| agendaId     | String        | FK ke Agenda (kegiatan yang diabsen)                 |
+| userId       | String        | FK ke User (yang melakukan absensi)                  |
+| status       | Enum          | HADIR, IZIN, ALFA (default HADIR)                    |
+| waktuCheckIn | DateTime      | Waktu check-in / record dibuat (default now)         |
+| createdAt    | DateTime      | Auto                                                 |
+| updatedAt    | DateTime      | Auto                                                 |
+| *(unique)*   | —             | `(agendaId, userId)` — cegah double check-in         |
+
 ## Catatan Relasi
+### Sprint 8 — Absensi
+Relasi many-to-one ke `Agenda` dan `User`: satu agenda punya banyak record absensi, satu user bisa punya absensi di banyak agenda. Unique constraint gabungan `(agendaId, userId)` di level database mencegah double check-in (controller menangkap error `P2002` → `409`). Referential action berbeda per relasi: `Cascade` untuk `Agenda` (absensi adalah data turunan — ikut terhapus saat agenda dihapus) dan `Restrict` untuk `User` (riwayat kehadiran ikut menjaga user tidak bisa dihapus). Perubahan skema di-apply lewat `prisma db push`, konsisten dengan Sprint 4-7.
+
 ### Sprint 7 — Pengumuman
 Relasi one-to-many: satu `User` bisa membuat banyak `Pengumuman` (lewat FK `Pengumuman.createdBy`, diisi otomatis dari token). Referential action: `onDelete: Restrict`, konsisten dengan pola Agenda. Perubahan skema di-apply lewat `prisma db push`.
 

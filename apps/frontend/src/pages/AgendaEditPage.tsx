@@ -5,6 +5,7 @@ import { isAxiosError } from 'axios'
 import { api } from '../lib/axios'
 import AgendaForm from '../features/agenda/AgendaForm'
 import { useUpdateAgenda, useDeleteAgenda } from '../features/agenda/useAgendaMutation'
+import AbsensiCard from '../features/absensi/AbsensiCard'
 import type { AgendaPayload, Agenda } from '../features/agenda/AgendaApi'
 
 export default function AgendaEditPage() {
@@ -12,6 +13,10 @@ export default function AgendaEditPage() {
   const navigate = useNavigate()
   const updateMutation = useUpdateAgenda(id!)
   const deleteMutation = useDeleteAgenda()
+
+  const userJson = localStorage.getItem('user')
+  const user = userJson ? JSON.parse(userJson) : null
+  const canViewRekap = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'KETUA'
 
   const { data, isLoading } = useQuery({
     queryKey: ['agenda-detail', id],
@@ -76,13 +81,17 @@ export default function AgendaEditPage() {
 
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Agenda</h1>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 max-w-lg">
-        <AgendaForm
-          defaultValues={data.data}
-          onSubmit={handleSubmit}
-          isSubmitting={updateMutation.isPending}
-          submitError={updateMutation.error}
-        />
+      <div className="space-y-4 max-w-lg">
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <AgendaForm
+            defaultValues={data.data}
+            onSubmit={handleSubmit}
+            isSubmitting={updateMutation.isPending}
+            submitError={updateMutation.error}
+          />
+        </div>
+
+        {id && <AbsensiCard agendaId={id} canViewRekap={canViewRekap} />}
       </div>
     </div>
   )

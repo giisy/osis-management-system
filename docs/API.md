@@ -731,3 +731,125 @@ Hapus pengumuman. Role `SUPER_ADMIN` atau `ADMIN` saja.
 - `401` — Token tidak ditemukan / tidak valid
 - `403` — Role tidak diizinkan
 - `404` — Pengumuman tidak ditemukan
+
+---
+
+## Absensi
+
+> Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
+> - **Check-in & riwayat sendiri** (`POST /:agendaId/checkin`, `GET /saya`): semua role yang login
+> - **Rekap per agenda & tandai manual** (`GET /agenda/:agendaId`, `POST /:agendaId/tandai`): butuh role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`
+
+### POST /api/absensi/:agendaId/checkin
+Check-in kehadiran diri sendiri untuk satu agenda. `userId` diambil dari token (bukan body), status otomatis `HADIR`, `waktuCheckIn` diisi waktu server. Semua role yang login.
+
+Hanya bisa check-in **setelah agenda dimulai** (`waktuMulai <= sekarang` — agenda yang sedang berjalan atau sudah selesai tetap bisa). Satu user hanya bisa check-in sekali per agenda (ditolak `409`).
+
+**Response sukses (201):**
+```json
+{
+  "success": true,
+  "message": "Check-in berhasil",
+  "data": {
+    "id": "...",
+    "status": "HADIR",
+    "waktuCheckIn": "...",
+    "agenda": { "id": "...", "judul": "...", "lokasi": "...", "waktuMulai": "...", "waktuSelesai": "..." },
+    "createdAt": "..."
+  }
+}
+```
+
+**Response gagal:**
+- `400` — Agenda belum dimulai (check-in belum dibuka)
+- `401` — Token tidak ditemukan / tidak valid
+- `404` — Agenda tidak ditemukan
+- `409` — Sudah check-in untuk agenda ini
+
+---
+
+### GET /api/absensi/saya
+Riwayat kehadiran user yang sedang login, urut berdasarkan `waktuMulai` agenda (terbaru dulu). Semua role yang login.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "...",
+      "status": "HADIR",
+      "waktuCheckIn": "...",
+      "agenda": { "id": "...", "judul": "...", "lokasi": "...", "waktuMulai": "...", "waktuSelesai": "..." },
+      "createdAt": "..."
+    }
+  ]
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+
+---
+
+### GET /api/absensi/agenda/:agendaId
+Rekap kehadiran satu agenda: daftar record absensi (urut `waktuCheckIn` asc) + hitungan per status. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`. Anggota tanpa record tidak muncul di daftar (belum absen).
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "agenda": { "id": "...", "judul": "...", "lokasi": "...", "waktuMulai": "...", "waktuSelesai": "..." },
+    "rekap": { "hadir": 12, "izin": 2, "alfa": 1, "totalTercatat": 15 },
+    "items": [
+      {
+        "id": "...",
+        "user": { "id": "...", "name": "...", "role": "ANGGOTA", "kelas": "..." },
+        "status": "HADIR",
+        "waktuCheckIn": "...",
+        "createdAt": "..."
+      }
+    ]
+  }
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Agenda tidak ditemukan
+
+---
+
+### POST /api/absensi/:agendaId/tandai
+Tandai/koreksi kehadiran seorang user secara manual (mis. izin via WA, lupa check-in). Perilaku upsert: kalau user belum punya record di agenda itu, dibuat; kalau sudah, hanya statusnya yang diubah. Tanpa batasan waktu. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+
+**Body:**
+```json
+{
+  "userId": "string (UUID user)",
+  "status": "HADIR | IZIN | ALFA"
+}
+```
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Kehadiran berhasil ditandai",
+  "data": {
+    "id": "...",
+    "user": { "id": "...", "name": "...", "role": "...", "kelas": "..." },
+    "status": "IZIN",
+    "waktuCheckIn": "...",
+    "createdAt": "..."
+  }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Agenda atau user tidak ditemukan
