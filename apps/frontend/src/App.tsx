@@ -10,6 +10,9 @@ import DivisiEditPage from './pages/DivisiEditPage'
 import AgendaPage from './pages/AgendaPage'
 import AgendaCreatePage from './pages/AgendaCreatePage'
 import AgendaEditPage from './pages/AgendaEditPage'
+import PengumumanPage from './pages/PengumumanPage'
+import PengumumanCreatePage from './pages/PengumumanCreatePage'
+import PengumumanEditPage from './pages/PengumumanEditPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/layout/DashboardLayout'
 
@@ -114,6 +117,36 @@ function App() {
             <ProtectedRoute>
               <DashboardLayout>
                 <AgendaEditPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pengumuman"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <PengumumanPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pengumuman/create"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <PengumumanCreatePage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pengumuman/:id/edit"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <PengumumanEditPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
