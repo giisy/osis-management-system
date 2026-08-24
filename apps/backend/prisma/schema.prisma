@@ -28,6 +28,7 @@ model User {
   divisi           Divisi?      @relation("DivisiAnggota", fields: [divisiId], references: [id], onDelete: Restrict)
   agendaDibuat     Agenda[]     @relation("AgendaCreator")
   pengumumanDibuat Pengumuman[] @relation("PengumumanCreator")
+  absensi          Absensi[]    @relation("UserAbsensi")
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 }
@@ -57,6 +58,7 @@ model Agenda {
   waktuSelesai DateTime?
   createdBy    String
   creator      User      @relation("AgendaCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  absensi      Absensi[] @relation("AgendaAbsensi")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
@@ -69,4 +71,24 @@ model Pengumuman {
   creator   User     @relation("PengumumanCreator", fields: [createdBy], references: [id], onDelete: Restrict)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum AbsensiStatus {
+  HADIR
+  IZIN
+  ALFA
+}
+
+model Absensi {
+  id           String        @id @default(uuid())
+  agendaId     String
+  agenda       Agenda        @relation("AgendaAbsensi", fields: [agendaId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User          @relation("UserAbsensi", fields: [userId], references: [id], onDelete: Restrict)
+  status       AbsensiStatus @default(HADIR)
+  waktuCheckIn DateTime      @default(now())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([agendaId, userId])
 }
