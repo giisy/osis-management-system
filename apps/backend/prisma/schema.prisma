@@ -29,6 +29,7 @@ model User {
   agendaDibuat     Agenda[]     @relation("AgendaCreator")
   pengumumanDibuat Pengumuman[] @relation("PengumumanCreator")
   absensi          Absensi[]    @relation("UserAbsensi")
+  transaksiDibuat  Transaksi[]  @relation("TransaksiCreator")
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 }
@@ -91,4 +92,21 @@ model Absensi {
   updatedAt    DateTime      @updatedAt
 
   @@unique([agendaId, userId])
+}
+
+enum JenisTransaksi {
+  PEMASUKAN
+  PENGELUARAN
+}
+
+model Transaksi {
+  id         String          @id @default(uuid())
+  jenis      JenisTransaksi
+  jumlah     Int
+  keterangan String
+  tanggal    DateTime
+  createdBy  String
+  creator    User            @relation("TransaksiCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
 }
