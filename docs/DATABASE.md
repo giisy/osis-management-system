@@ -17,6 +17,7 @@
 | agendaDibuat | Agenda[] | Relasi balik: agenda yang dibuat user |
 | pengumumanDibuat | Pengumuman[] | Relasi balik: pengumuman yang dibuat user |
 | absensi | Absensi[] | Relasi balik: riwayat absensi user |
+| transaksiDibuat | Transaksi[] | Relasi balik: transaksi kas yang dicatat user |
 | createdAt    | DateTime | Auto                                  |
 | updatedAt    | DateTime | Auto                                  |
 
@@ -65,7 +66,22 @@
 | updatedAt    | DateTime      | Auto                                                 |
 | *(unique)*   | —             | `(agendaId, userId)` — cegah double check-in         |
 
+## Transaksi
+| Field      | Type     | Keterangan                                        |
+|------------|----------|---------------------------------------------------|
+| id         | String   | UUID, primary key                                 |
+| jenis      | Enum     | PEMASUKAN, PENGELUARAN                            |
+| jumlah     | Int      | Rupiah bulat (tanpa sen), selalu positif          |
+| keterangan | String   | Deskripsi transaksi (max 200 karakter)            |
+| tanggal    | DateTime | Tanggal transaksi (bukan tanggal mencatat)        |
+| createdBy  | String   | FK ke User (pencatat transaksi)                   |
+| createdAt  | DateTime | Auto                                              |
+| updatedAt  | DateTime | Auto                                              |
+
 ## Catatan Relasi
+### Sprint 9 — Kas (Transaksi)
+Relasi one-to-many: satu `User` bisa mencatat banyak `Transaksi` (lewat FK `Transaksi.createdBy`, diisi otomatis dari token). Referential action: `onDelete: Restrict` — user yang masih memiliki catatan transaksi tidak bisa dihapus, konsisten dengan Agenda/Pengumuman/Absensi. `jumlah` disimpan sebagai `Int` rupiah bulat (bukan Float/Decimal): rupiah tidak memakai sen dalam praktik dan integer menghindari seluruh masalah pembulatan float. Perubahan skema di-apply lewat `prisma db push`, konsisten dengan Sprint 4-8.
+
 ### Sprint 8 — Absensi
 Relasi many-to-one ke `Agenda` dan `User`: satu agenda punya banyak record absensi, satu user bisa punya absensi di banyak agenda. Unique constraint gabungan `(agendaId, userId)` di level database mencegah double check-in (controller menangkap error `P2002` → `409`). Referential action berbeda per relasi: `Cascade` untuk `Agenda` (absensi adalah data turunan — ikut terhapus saat agenda dihapus) dan `Restrict` untuk `User` (riwayat kehadiran ikut menjaga user tidak bisa dihapus). Perubahan skema di-apply lewat `prisma db push`, konsisten dengan Sprint 4-7.
 

@@ -7,6 +7,7 @@ import {
   FolderKanban,
   CalendarDays,
   Megaphone,
+  Wallet,
   LogOut,
   Menu,
 } from 'lucide-react'
@@ -21,6 +22,7 @@ const menuItems = [
   { label: 'Divisi', path: '/divisi', icon: FolderKanban },
   { label: 'Agenda', path: '/agenda', icon: CalendarDays },
   { label: 'Pengumuman', path: '/pengumuman', icon: Megaphone },
+  { label: 'Kas', path: '/kas', icon: Wallet },
 ]
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {

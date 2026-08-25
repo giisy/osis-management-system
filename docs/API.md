@@ -853,3 +853,178 @@ Tandai/koreksi kehadiran seorang user secara manual (mis. izin via WA, lupa chec
 - `401` — Token tidak ditemukan / tidak valid
 - `403` — Role tidak diizinkan
 - `404` — Agenda atau user tidak ditemukan
+
+---
+
+## Kas (Transaksi & Laporan)
+
+> Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
+> - **List, Detail & Laporan** (GET): semua role yang login
+> - **Create, Update** (POST/PUT): butuh role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`
+> - **Delete**: butuh role `SUPER_ADMIN` atau `ADMIN`
+
+### GET /api/kas
+List transaksi kas dengan paginasi, urut `tanggal` desc (terbaru dulu).
+
+**Query params:**
+| Param   | Default       | Keterangan                                   |
+|---------|---------------|----------------------------------------------|
+| `page`  | 1             | Nomor halaman (min 1)                        |
+| `limit` | 10            | Jumlah item per halaman (max 100)            |
+| `jenis` | *(kosong)*    | Filter opsional: `PEMASUKAN` / `PENGELUARAN` |
+
+Contoh: `GET /api/kas?page=2&limit=20&jenis=PENGELUARAN`
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "...",
+        "jenis": "PEMASUKAN",
+        "jumlah": 50000,
+        "keterangan": "Iuran anggota Agustus",
+        "tanggal": "2026-08-10T00:00:00.000Z",
+        "creator": { "id": "...", "name": "..." },
+        "createdAt": "...",
+        "updatedAt": "..."
+      }
+    ],
+    "pagination": { "page": 1, "limit": 10, "total": 35, "totalPages": 4 }
+  }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal (page/limit/jenis tidak valid)
+- `401` — Token tidak ditemukan / tidak valid
+
+---
+
+### GET /api/kas/laporan
+Ringkasan kas: total pemasukan, total pengeluaran, saldo saat ini, plus breakdown per bulan (12 bulan terakhir, untuk grafik). Semua role yang login.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "totalPemasukan": 1500000,
+    "totalPengeluaran": 700000,
+    "saldo": 800000,
+    "perBulan": [
+      { "bulan": "Agustus", "tahun": 2026, "pemasukan": 500000, "pengeluaran": 200000 }
+    ]
+  }
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+
+---
+
+### GET /api/kas/:id
+Detail satu transaksi. Semua role yang login.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "...",
+    "jenis": "PENGELUARAN",
+    "jumlah": 150000,
+    "keterangan": "Pembelian spanduk",
+    "tanggal": "2026-08-15T00:00:00.000Z",
+    "creator": { "id": "...", "name": "..." },
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `404` — Transaksi tidak ditemukan
+
+---
+
+### POST /api/kas
+Catat transaksi baru. `createdBy` diisi otomatis dari token. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+
+**Body:**
+```json
+{
+  "jenis": "PEMASUKAN | PENGELUARAN",
+  "jumlah": 50000,
+  "keterangan": "string (min 3, max 200 karakter)",
+  "tanggal": "string tanggal ISO 8601 (wajib, boleh tanggal masa lalu)"
+}
+```
+
+Catatan: `jumlah` selalu positif (rupiah bulat, tanpa sen); arah transaksi ditentukan `jenis`, bukan tanda minus.
+
+**Response sukses (201):**
+```json
+{
+  "success": true,
+  "message": "Transaksi berhasil dicatat",
+  "data": { "id": "...", "jenis": "...", "jumlah": 50000, "...": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+
+---
+
+### PUT /api/kas/:id
+Edit transaksi. Semua field opsional. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+
+**Body (semua opsional):**
+```json
+{
+  "jenis": "PEMASUKAN | PENGELUARAN",
+  "jumlah": 50000,
+  "keterangan": "string (min 3, max 200 karakter)",
+  "tanggal": "string tanggal ISO 8601"
+}
+```
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Data transaksi berhasil diperbarui",
+  "data": { "id": "...", "jenis": "...", "jumlah": 50000, "...": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Transaksi tidak ditemukan
+
+---
+
+### DELETE /api/kas/:id
+Hapus transaksi. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Transaksi berhasil dihapus"
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Transaksi tidak ditemukan

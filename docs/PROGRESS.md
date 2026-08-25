@@ -74,3 +74,14 @@
 - Backend: `POST /api/absensi/:agendaId/tandai` (tandai/koreksi manual via upsert, tanpa batasan waktu) — role SUPER_ADMIN, ADMIN, KETUA
 - Backend: validasi Zod (`absensiSchema.ts`) — `userId` UUID, `status` enum
 - Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui
+
+## Sprint 9 — Kas ✅ (Selesai)
+- Database: model `Transaksi` + enum `JenisTransaksi` (PEMASUKAN/PENGELUARAN), `jumlah` `Int` rupiah bulat (hindari pembulatan float), `keterangan`, `tanggal`, `createdBy` FK ke User `onDelete: Restrict` — apply via `prisma db push`
+- Backend: `GET /api/kas` (list paginasi + filter `jenis`, urut `tanggal` desc) — semua role yang login
+- Backend: `GET /api/kas/laporan` (total pemasukan/pengeluaran via `aggregate _sum`, saldo, breakdown `perBulan` 12 bulan terakhir untuk grafik) — semua role yang login
+- Backend: `GET /api/kas/:id` (detail) — semua role yang login
+- Backend: `POST /api/kas` (create, `createdBy` otomatis dari token) — role SUPER_ADMIN, ADMIN, KETUA
+- Backend: `PUT /api/kas/:id` (update) — role SUPER_ADMIN, ADMIN, KETUA
+- Backend: `DELETE /api/kas/:id` (delete) — role SUPER_ADMIN, ADMIN
+- Backend: validasi Zod (`kasSchema.ts`) — `jumlah` int positif max 2 miliar, `jenis` enum, `keterangan` 3-200 karakter, tanggal ISO (masa lalu boleh)
+- Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui

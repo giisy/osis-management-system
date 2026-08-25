@@ -13,6 +13,9 @@ import AgendaEditPage from './pages/AgendaEditPage'
 import PengumumanPage from './pages/PengumumanPage'
 import PengumumanCreatePage from './pages/PengumumanCreatePage'
 import PengumumanEditPage from './pages/PengumumanEditPage'
+import KasPage from './pages/KasPage'
+import KasCreatePage from './pages/KasCreatePage'
+import KasEditPage from './pages/KasEditPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/layout/DashboardLayout'
 
@@ -147,6 +150,36 @@ function App() {
             <ProtectedRoute>
               <DashboardLayout>
                 <PengumumanEditPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/kas"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <KasPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/kas/create"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <KasCreatePage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/kas/:id/edit"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <KasEditPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
