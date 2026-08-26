@@ -30,6 +30,7 @@ model User {
   pengumumanDibuat Pengumuman[] @relation("PengumumanCreator")
   absensi          Absensi[]    @relation("UserAbsensi")
   transaksiDibuat  Transaksi[]  @relation("TransaksiCreator")
+  peminjaman       Peminjaman[] @relation("UserPeminjaman")
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 }
@@ -109,4 +110,41 @@ model Transaksi {
   creator    User            @relation("TransaksiCreator", fields: [createdBy], references: [id], onDelete: Restrict)
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
+}
+
+enum KondisiBarang {
+  BAIK
+  RUSAK_RINGAN
+  RUSAK_BERAT
+}
+
+enum StatusPeminjaman {
+  DIPINJAM
+  DIKEMBALIKAN
+}
+
+model Barang {
+  id         String        @id @default(uuid())
+  nama       String        @unique
+  deskripsi  String?
+  jumlah     Int
+  kondisi    KondisiBarang @default(BAIK)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  peminjaman Peminjaman[]  @relation("BarangPeminjaman")
+}
+
+model Peminjaman {
+  id             String           @id @default(uuid())
+  barangId       String
+  barang         Barang           @relation("BarangPeminjaman", fields: [barangId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User             @relation("UserPeminjaman", fields: [userId], references: [id], onDelete: Restrict)
+  jumlah         Int
+  keperluan      String?
+  tanggalPinjam  DateTime
+  tanggalKembali DateTime?
+  status         StatusPeminjaman @default(DIPINJAM)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 }

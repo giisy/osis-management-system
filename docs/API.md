@@ -1028,3 +1028,261 @@ Hapus transaksi. Role `SUPER_ADMIN` atau `ADMIN` saja.
 - `401` — Token tidak ditemukan / tidak valid
 - `403` — Role tidak diizinkan
 - `404` — Transaksi tidak ditemukan
+
+---
+
+## Inventaris (Barang)
+
+> Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
+> - **List & Detail** (GET): semua role yang login
+> - **Create, Update, Delete** (POST/PUT/DELETE): butuh role `SUPER_ADMIN` atau `ADMIN`
+
+### GET /api/inventaris
+List semua barang + `jumlahDipinjam` (total unit dalam peminjaman aktif) dan `stokTersedia` (`jumlah - jumlahDipinjam`), urut nama.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "...",
+      "nama": "Proyektor",
+      "deskripsi": "...",
+      "jumlah": 2,
+      "kondisi": "BAIK",
+      "jumlahDipinjam": 1,
+      "stokTersedia": 1,
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ]
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+
+---
+
+### GET /api/inventaris/:id
+Detail satu barang + daftar peminjaman aktifnya. Semua role yang login.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "...",
+    "nama": "Proyektor",
+    "deskripsi": "...",
+    "jumlah": 2,
+    "kondisi": "BAIK",
+    "jumlahDipinjam": 1,
+    "stokTersedia": 1,
+    "createdAt": "...",
+    "updatedAt": "...",
+    "peminjaman": [
+      {
+        "id": "...",
+        "jumlah": 1,
+        "keperluan": "Pentas seni",
+        "tanggalPinjam": "...",
+        "user": { "id": "...", "name": "...", "kelas": "..." }
+      }
+    ]
+  }
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `404` — Barang tidak ditemukan
+
+---
+
+### POST /api/inventaris
+Tambah barang baru. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+**Body:**
+```json
+{
+  "nama": "string (min 3 karakter, unique)",
+  "deskripsi": "string (opsional)",
+  "jumlah": 2,
+  "kondisi": "BAIK | RUSAK_RINGAN | RUSAK_BERAT (opsional, default BAIK)"
+}
+```
+
+**Response sukses (201):**
+```json
+{
+  "success": true,
+  "message": "Barang berhasil ditambahkan",
+  "data": { "id": "...", "nama": "...", "jumlah": 2, "...": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `409` — Nama barang sudah digunakan
+
+---
+
+### PUT /api/inventaris/:id
+Edit barang. Semua field opsional. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+**Body (semua opsional):**
+```json
+{
+  "nama": "string (min 3 karakter, unique)",
+  "deskripsi": "string | null",
+  "jumlah": 2,
+  "kondisi": "BAIK | RUSAK_RINGAN | RUSAK_BERAT"
+}
+```
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Data barang berhasil diperbarui",
+  "data": { "id": "...", "nama": "...", "...": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Barang tidak ditemukan
+- `409` — Nama barang sudah digunakan oleh barang lain
+
+---
+
+### DELETE /api/inventaris/:id
+Hapus barang. Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+Barang yang **masih dipinjam** (ada peminjaman berstatus `DIPINJAM`) tidak bisa dihapus (response `409`) — tunggu dikembalikan. Riwayat peminjaman yang sudah selesai ikut terhapus bersama barang (cascade).
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Barang berhasil dihapus"
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Barang tidak ditemukan
+- `409` — Barang masih dipinjam
+
+---
+
+## Peminjaman
+
+> Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
+> - **List, Detail, Create** (GET/POST): semua role yang login — anggota mencatat peminjaman untuk dirinya sendiri
+> - **Kembalikan**: peminjam sendiri, atau role `SUPER_ADMIN`, `ADMIN`, `KETUA`
+
+### GET /api/peminjaman
+Daftar peminjaman (aktif + riwayat), urut `tanggalPinjam` desc. Semua role yang login.
+
+**Query (opsional):**
+- `status` — filter: `DIPINJAM` / `DIKEMBALIKAN` (tanpa filter = semua)
+
+Contoh: `GET /api/peminjaman?status=DIPINJAM`
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "...",
+      "barang": { "id": "...", "nama": "Proyektor", "kondisi": "BAIK" },
+      "user": { "id": "...", "name": "...", "kelas": "..." },
+      "jumlah": 1,
+      "keperluan": "Pentas seni",
+      "tanggalPinjam": "...",
+      "tanggalKembali": null,
+      "status": "DIPINJAM",
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ]
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal (status tidak valid)
+- `401` — Token tidak ditemukan / tidak valid
+
+---
+
+### GET /api/peminjaman/:id
+Detail satu peminjaman. Semua role yang login.
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `404` — Peminjaman tidak ditemukan
+
+---
+
+### POST /api/peminjaman
+Catat peminjaman baru. `userId` (peminjam) diisi otomatis dari token; user dengan role `SUPER_ADMIN`, `ADMIN`, atau `KETUA` boleh mengisi `userId` di body untuk mencatatkan peminjaman orang lain. Semua role yang login.
+
+Cek stok dilakukan dalam satu transaksi: `stokTersedia = jumlah barang − Σ jumlah peminjaman aktif`. Stok tidak cukup → `409`; barang `RUSAK_BERAT` tidak bisa dipinjam → `400`.
+
+**Body:**
+```json
+{
+  "barangId": "string (UUID barang)",
+  "jumlah": 1,
+  "keperluan": "string (opsional, min 3 max 200 karakter)",
+  "tanggalPinjam": "string tanggal ISO 8601 (wajib, boleh masa depan)",
+  "userId": "string (opsional, UUID — khusus SUPER_ADMIN/ADMIN/KETUA)"
+}
+```
+
+**Response sukses (201):**
+```json
+{
+  "success": true,
+  "message": "Peminjaman berhasil dicatat",
+  "data": { "id": "...", "status": "DIPINJAM", "...": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal / barang rusak berat
+- `401` — Token tidak ditemukan / tidak valid
+- `404` — Barang atau user tidak ditemukan
+- `409` — Stok tidak cukup (pesan menyertakan stok tersedia)
+
+---
+
+### POST /api/peminjaman/:id/kembalikan
+Tandai peminjaman selesai: `status` → `DIKEMBALIKAN`, `tanggalKembali` diisi waktu server. Hanya peminjam sendiri atau role `SUPER_ADMIN`, `ADMIN`, `KETUA`.
+
+Ditolak (`409`) jika sudah dikembalikan, dan (`400`) jika `tanggalPinjam` masih di masa depan (menjamin `tanggalKembali > tanggalPinjam`).
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "message": "Peminjaman berhasil dikembalikan",
+  "data": { "id": "...", "status": "DIKEMBALIKAN", "tanggalKembali": "...", "...": "..." }
+}
+```
+
+**Response gagal:**
+- `400` — Tanggal pinjam masih di masa depan
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Bukan peminjam dan bukan SUPER_ADMIN/ADMIN/KETUA
+- `404` — Peminjaman tidak ditemukan
+- `409` — Sudah dikembalikan

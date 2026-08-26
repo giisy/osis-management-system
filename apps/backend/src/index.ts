@@ -8,6 +8,8 @@ import agendaRoutes from './routes/agendaRoutes'
 import pengumumanRoutes from './routes/pengumumanRoutes'
 import absensiRoutes from './routes/absensiRoutes'
 import kasRoutes from './routes/kasRoutes'
+import inventarisRoutes from './routes/inventarisRoutes'
+import peminjamanRoutes from './routes/peminjamanRoutes'
 
 const app = express()
 const PORT = 4000
@@ -30,6 +32,8 @@ app.use('/api/agenda', agendaRoutes)
 app.use('/api/pengumuman', pengumumanRoutes)
 app.use('/api/absensi', absensiRoutes)
 app.use('/api/kas', kasRoutes)
+app.use('/api/inventaris', inventarisRoutes)
+app.use('/api/peminjaman', peminjamanRoutes)
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)

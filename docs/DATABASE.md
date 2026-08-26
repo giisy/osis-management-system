@@ -18,6 +18,7 @@
 | pengumumanDibuat | Pengumuman[] | Relasi balik: pengumuman yang dibuat user |
 | absensi | Absensi[] | Relasi balik: riwayat absensi user |
 | transaksiDibuat | Transaksi[] | Relasi balik: transaksi kas yang dicatat user |
+| peminjaman | Peminjaman[] | Relasi balik: peminjaman oleh user |
 | createdAt    | DateTime | Auto                                  |
 | updatedAt    | DateTime | Auto                                  |
 
@@ -78,7 +79,35 @@
 | createdAt  | DateTime | Auto                                              |
 | updatedAt  | DateTime | Auto                                              |
 
+## Barang
+| Field     | Type     | Keterangan                                        |
+|-----------|----------|---------------------------------------------------|
+| id        | String   | UUID, primary key                                 |
+| nama      | String   | Nama barang, Unique                               |
+| deskripsi | String?  | Deskripsi barang (opsional)                       |
+| jumlah    | Int      | Jumlah total unit yang dimiliki                   |
+| kondisi   | Enum     | BAIK, RUSAK_RINGAN, RUSAK_BERAT (default BAIK)    |
+| createdAt | DateTime | Auto                                              |
+| updatedAt | DateTime | Auto                                              |
+
+## Peminjaman
+| Field          | Type       | Keterangan                                        |
+|----------------|------------|---------------------------------------------------|
+| id             | String     | UUID, primary key                                 |
+| barangId       | String     | FK ke Barang (barang yang dipinjam)               |
+| userId         | String     | FK ke User (peminjam)                             |
+| jumlah         | Int        | Jumlah unit yang dipinjam (selalu positif)        |
+| keperluan      | String?    | Keperluan peminjaman (opsional)                   |
+| tanggalPinjam  | DateTime   | Tanggal pinjam                                    |
+| tanggalKembali | DateTime?  | `null` = belum kembali, diisi server saat return  |
+| status         | Enum       | DIPINJAM, DIKEMBALIKAN (default DIPINJAM)         |
+| createdAt      | DateTime   | Auto                                              |
+| updatedAt      | DateTime   | Auto                                              |
+
 ## Catatan Relasi
+### Sprint 10 — Inventaris
+Dua relasi di `Peminjaman`: many-to-one ke `Barang` (`onDelete: Cascade` — riwayat peminjaman adalah data turunan barang, ikut terhapus saat barang dihapus; controller tetap menolak `409` jika masih ada peminjaman aktif) dan ke `User` (`onDelete: Restrict`, konsisten pola lain). `tanggalKembali` tidak pernah diterima dari body — hanya diisi server oleh endpoint kembalikan, menjamin `tanggalKembali > tanggalPinjam`. Cek stok (`jumlah − Σ peminjaman aktif`) berjalan di level aplikasi dalam `prisma.$transaction` (bukan constraint DB): cukup akurat untuk skala OSIS tanpa kompleksitas trigger. Perubahan skema di-apply lewat `prisma db push`, konsisten dengan Sprint 4-9.
+
 ### Sprint 9 — Kas (Transaksi)
 Relasi one-to-many: satu `User` bisa mencatat banyak `Transaksi` (lewat FK `Transaksi.createdBy`, diisi otomatis dari token). Referential action: `onDelete: Restrict` — user yang masih memiliki catatan transaksi tidak bisa dihapus, konsisten dengan Agenda/Pengumuman/Absensi. `jumlah` disimpan sebagai `Int` rupiah bulat (bukan Float/Decimal): rupiah tidak memakai sen dalam praktik dan integer menghindari seluruh masalah pembulatan float. Perubahan skema di-apply lewat `prisma db push`, konsisten dengan Sprint 4-8.
 

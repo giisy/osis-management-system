@@ -85,3 +85,12 @@
 - Backend: `DELETE /api/kas/:id` (delete) — role SUPER_ADMIN, ADMIN
 - Backend: validasi Zod (`kasSchema.ts`) — `jumlah` int positif max 2 miliar, `jenis` enum, `keterangan` 3-200 karakter, tanggal ISO (masa lalu boleh)
 - Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui
+
+## Sprint 10 — Inventaris ✅ (Selesai)
+- Database: model `Barang` (`nama` unique, `jumlah`, `kondisi` enum BAIK/RUSAK_RINGAN/RUSAK_BERAT) + model `Peminjaman` (FK ke Barang `onDelete: Cascade` & User `onDelete: Restrict`, `jumlah`, `keperluan`, `tanggalPinjam`, `tanggalKembali` nullable, `status` enum DIPINJAM/DIKEMBALIKAN) — apply via `prisma db push`
+- Backend: CRUD `Barang` di `/api/inventaris` — list dengan `jumlahDipinjam`/`stokTersedia`, detail + peminjaman aktif, create/update/delete role SUPER_ADMIN & ADMIN (delete ditolak `409` jika masih dipinjam)
+- Backend: `POST /api/peminjaman` (catat peminjaman, `userId` dari token, override `userId` untuk S/A/K, cek stok dalam `$transaction`, barang RUSAK_BERAT ditolak, stok kurang → `409`) — semua role yang login
+- Backend: `GET /api/peminjaman` (list aktif + riwayat, filter `status`) & `GET /api/peminjaman/:id` — semua role yang login
+- Backend: `POST /api/peminjaman/:id/kembalikan` (status → DIKEMBALIKAN, `tanggalKembali` diisi server) — peminjam sendiri atau SUPER_ADMIN/ADMIN/KETUA
+- Backend: validasi Zod (`inventarisSchema.ts`)
+- Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui
