@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Megaphone,
   Wallet,
+  Archive,
   LogOut,
   Menu,
 } from 'lucide-react'
@@ -23,6 +24,7 @@ const menuItems = [
   { label: 'Agenda', path: '/agenda', icon: CalendarDays },
   { label: 'Pengumuman', path: '/pengumuman', icon: Megaphone },
   { label: 'Kas', path: '/kas', icon: Wallet },
+  { label: 'Inventaris', path: '/inventaris', icon: Archive },
 ]
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {

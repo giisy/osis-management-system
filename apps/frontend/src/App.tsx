@@ -16,6 +16,10 @@ import PengumumanEditPage from './pages/PengumumanEditPage'
 import KasPage from './pages/KasPage'
 import KasCreatePage from './pages/KasCreatePage'
 import KasEditPage from './pages/KasEditPage'
+import BarangPage from './pages/BarangPage'
+import BarangCreatePage from './pages/BarangCreatePage'
+import BarangEditPage from './pages/BarangEditPage'
+import PeminjamanPage from './pages/PeminjamanPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/layout/DashboardLayout'
 
@@ -180,6 +184,46 @@ function App() {
             <ProtectedRoute>
               <DashboardLayout>
                 <KasEditPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inventaris"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <BarangPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inventaris/create"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <BarangCreatePage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inventaris/:id/edit"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <BarangEditPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/peminjaman"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <PeminjamanPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
