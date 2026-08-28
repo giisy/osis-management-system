@@ -31,6 +31,8 @@ model User {
   absensi          Absensi[]    @relation("UserAbsensi")
   transaksiDibuat  Transaksi[]  @relation("TransaksiCreator")
   peminjaman       Peminjaman[] @relation("UserPeminjaman")
+  votingDibuat     VotingSession[] @relation("VotingCreator")
+  suara            Suara[]      @relation("UserSuara")
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 }
@@ -147,4 +149,47 @@ model Peminjaman {
   status         StatusPeminjaman @default(DIPINJAM)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
+}
+
+enum StatusVoting {
+  TERBUKA
+  DITUTUP
+}
+
+model VotingSession {
+  id          String       @id @default(uuid())
+  judul       String
+  deskripsi   String?
+  status      StatusVoting @default(TERBUKA)
+  ditutupPada DateTime?
+  createdBy   String
+  creator     User         @relation("VotingCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  pilihan     Pilihan[]    @relation("VotingPilihan")
+  suara       Suara[]      @relation("VotingSuara")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Pilihan {
+  id        String        @id @default(uuid())
+  sessionId String
+  session   VotingSession @relation("VotingPilihan", fields: [sessionId], references: [id], onDelete: Cascade)
+  teks      String
+  urutan    Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  suara     Suara[]       @relation("PilihanSuara")
+}
+
+model Suara {
+  id        String        @id @default(uuid())
+  sessionId String
+  session   VotingSession @relation("VotingSuara", fields: [sessionId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User          @relation("UserSuara", fields: [userId], references: [id], onDelete: Restrict)
+  pilihanId String
+  pilihan   Pilihan       @relation("PilihanSuara", fields: [pilihanId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([sessionId, userId])
 }
