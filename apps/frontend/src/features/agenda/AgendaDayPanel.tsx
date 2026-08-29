@@ -1,7 +1,7 @@
 import type { Dayjs } from 'dayjs'
 import { Link } from 'react-router-dom'
 import { Clock, MapPin, Plus } from 'lucide-react'
-import type { Agenda } from './AgendaApi'
+import type { Agenda } from './agendaApi'
 
 interface AgendaDayPanelProps {
   selectedDate: Dayjs

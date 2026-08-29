@@ -1,5 +1,5 @@
 import type { Dayjs } from 'dayjs'
-import type { Agenda } from './AgendaApi'
+import type { Agenda } from './agendaApi'
 import { getAgendaForDate } from './agendaUtils'
 
 interface CalendarGridProps {

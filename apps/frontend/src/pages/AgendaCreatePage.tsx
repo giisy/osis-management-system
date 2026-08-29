@@ -2,7 +2,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import AgendaForm from '../features/agenda/AgendaForm'
 import { useCreateAgenda } from '../features/agenda/useAgendaMutation'
-import type { AgendaPayload } from '../features/agenda/AgendaApi'
+import type { AgendaPayload } from '../features/agenda/agendaApi'
 
 export default function AgendaCreatePage() {
   const navigate = useNavigate()

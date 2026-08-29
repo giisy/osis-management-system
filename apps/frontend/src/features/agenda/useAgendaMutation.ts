@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createAgenda, updateAgenda, deleteAgenda } from './AgendaApi'
-import type { AgendaPayload } from './AgendaApi'
+import { createAgenda, updateAgenda, deleteAgenda } from './agendaApi'
+import type { AgendaPayload } from './agendaApi'
 
 export const useCreateAgenda = () => {
   const queryClient = useQueryClient()

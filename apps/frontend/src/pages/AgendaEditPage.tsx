@@ -6,7 +6,7 @@ import { api } from '../lib/axios'
 import AgendaForm from '../features/agenda/AgendaForm'
 import { useUpdateAgenda, useDeleteAgenda } from '../features/agenda/useAgendaMutation'
 import AbsensiCard from '../features/absensi/AbsensiCard'
-import type { AgendaPayload, Agenda } from '../features/agenda/AgendaApi'
+import type { AgendaPayload, Agenda } from '../features/agenda/agendaApi'
 
 export default function AgendaEditPage() {
   const { id } = useParams<{ id: string }>()

@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { isAxiosError } from 'axios'
 import dayjs from '../../lib/dayjs'
 import { agendaSchema, type AgendaFormValues } from './agendaSchema'
-import type { Agenda, AgendaPayload } from './AgendaApi'
+import type { Agenda, AgendaPayload } from './agendaApi'
 
 interface AgendaFormProps {
   defaultValues?: Agenda
