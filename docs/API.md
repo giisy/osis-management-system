@@ -1286,3 +1286,208 @@ Ditolak (`409`) jika sudah dikembalikan, dan (`400`) jika `tanggalPinjam` masih 
 - `403` — Bukan peminjam dan bukan SUPER_ADMIN/ADMIN/KETUA
 - `404` — Peminjaman tidak ditemukan
 - `409` — Sudah dikembalikan
+
+---
+
+## Voting
+
+> Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
+> - **List, Detail, Vote, Hasil** (GET/POST): semua role yang login
+> - **Create, Update, Tutup, Buka** (POST/PUT): butuh role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`
+> - **Delete**: butuh role `SUPER_ADMIN` atau `ADMIN`
+
+Hasil per pilihan hanya terlihat **setelah voting ditutup** (menghindari efek mengikuti hasil awal); total suara (turnout) terlihat kapan pun. Suara bersifat anonim di API — tidak ada endpoint yang menampilkan siapa memilih apa.
+
+### GET /api/voting
+List semua sesi voting, urut terbaru dibuat. Semua role yang login.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "...",
+      "judul": "Pemilihan Ketua OSIS 2026",
+      "deskripsi": "...",
+      "status": "TERBUKA",
+      "ditutupPada": null,
+      "creator": { "id": "...", "name": "..." },
+      "jumlahPilihan": 3,
+      "totalSuara": 17,
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ]
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+
+---
+
+### GET /api/voting/:id
+Detail sesi voting. Saat `TERBUKA`: daftar pilihan **tanpa** jumlah suara + flag `sudahVoting` untuk user yang login. Saat `DITUTUP`: tiap pilihan menyertakan `jumlah`. Semua role yang login.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "...",
+    "judul": "Pemilihan Ketua OSIS 2026",
+    "deskripsi": "...",
+    "status": "TERBUKA",
+    "ditutupPada": null,
+    "creator": { "id": "...", "name": "..." },
+    "sudahVoting": false,
+    "totalSuara": 17,
+    "pilihan": [{ "id": "...", "teks": "Kandidat A", "urutan": 0 }],
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `404` — Sesi voting tidak ditemukan
+
+---
+
+### POST /api/voting
+Buat sesi voting baru (langsung berstatus `TERBUKA`). Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+
+**Body:**
+```json
+{
+  "judul": "string (min 3, max 200 karakter)",
+  "deskripsi": "string (opsional)",
+  "pilihan": ["string (2-10 item, masing-masing 1-100 karakter, tanpa duplikat)"]
+}
+```
+
+**Response sukses (201):**
+```json
+{
+  "success": true,
+  "message": "Sesi voting berhasil dibuat",
+  "data": {
+    "id": "...",
+    "judul": "...",
+    "status": "TERBUKA",
+    "pilihan": [{ "id": "...", "teks": "Kandidat A", "urutan": 0 }],
+    "...": "..."
+  }
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal (termasuk pilihan < 2 atau duplikat)
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+
+---
+
+### PUT /api/voting/:id
+Edit sesi: `judul`/`deskripsi` kapan pun; `pilihan` (replace semua) hanya jika belum ada suara masuk, selain itu `409`. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+
+**Body (semua opsional):**
+```json
+{
+  "judul": "string (min 3, max 200 karakter)",
+  "deskripsi": "string | null",
+  "pilihan": ["string (2-10 item)"]
+}
+```
+
+**Response gagal:**
+- `400` — Validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Sesi voting tidak ditemukan
+- `409` — Pilihan tidak bisa diubah karena sudah ada suara
+
+---
+
+### DELETE /api/voting/:id
+Hapus sesi voting beserta seluruh pilihan dan suaranya (cascade). Role `SUPER_ADMIN` atau `ADMIN` saja.
+
+**Response gagal:**
+- `401` — Token tidak ditemukan / tidak valid
+- `403` — Role tidak diizinkan
+- `404` — Sesi voting tidak ditemukan
+
+---
+
+### POST /api/voting/:id/tutup
+Tutup voting: `status` → `DITUTUP`, `ditutupPada` diisi waktu server. Setelah ini hasil bisa dilihat. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+
+**Response gagal:**
+- `401` / `403` / `404`
+- `409` — Voting ini sudah ditutup
+
+---
+
+### POST /api/voting/:id/buka
+Buka kembali voting yang sudah ditutup. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+
+**Response gagal:**
+- `401` / `403` / `404`
+- `409` — Voting ini masih terbuka
+
+---
+
+### POST /api/voting/:id/vote
+Berikan satu suara. `userId` diambil dari token. Semua role yang login.
+
+**Body:**
+```json
+{
+  "pilihanId": "string (ID pilihan dalam sesi ini)"
+}
+```
+
+**Response sukses (201):**
+```json
+{
+  "success": true,
+  "message": "Suara berhasil diberikan",
+  "data": { "pilihanId": "...", "teks": "Kandidat A" }
+}
+```
+
+**Response gagal:**
+- `400` — Voting sudah ditutup / pilihan tidak valid untuk sesi ini / validasi gagal
+- `401` — Token tidak ditemukan / tidak valid
+- `404` — Sesi voting tidak ditemukan
+- `409` — Kamu sudah memberikan suara untuk voting ini
+
+---
+
+### GET /api/voting/:id/hasil
+Hasil akhir: jumlah suara per pilihan, urut jumlah terbanyak. Semua role yang login — hanya saat `DITUTUP`, selama `TERBUKA` ditolak `400`.
+
+**Response sukses (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "...",
+    "judul": "Pemilihan Ketua OSIS 2026",
+    "status": "DITUTUP",
+    "ditutupPada": "...",
+    "totalSuara": 25,
+    "hasil": [
+      { "id": "...", "teks": "Kandidat A", "urutan": 0, "jumlah": 15 },
+      { "id": "...", "teks": "Kandidat B", "urutan": 1, "jumlah": 10 }
+    ]
+  }
+}
+```
+
+**Response gagal:**
+- `400` — Hasil belum bisa dilihat — voting masih terbuka
+- `401` — Token tidak ditemukan / tidak valid
+- `404` — Sesi voting tidak ditemukan

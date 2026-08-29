@@ -9,6 +9,7 @@ import {
   Megaphone,
   Wallet,
   Archive,
+  Vote,
   LogOut,
   Menu,
 } from 'lucide-react'
@@ -25,6 +26,7 @@ const menuItems = [
   { label: 'Pengumuman', path: '/pengumuman', icon: Megaphone },
   { label: 'Kas', path: '/kas', icon: Wallet },
   { label: 'Inventaris', path: '/inventaris', icon: Archive },
+  { label: 'Voting', path: '/voting', icon: Vote },
 ]
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {

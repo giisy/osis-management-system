@@ -19,6 +19,8 @@
 | absensi | Absensi[] | Relasi balik: riwayat absensi user |
 | transaksiDibuat | Transaksi[] | Relasi balik: transaksi kas yang dicatat user |
 | peminjaman | Peminjaman[] | Relasi balik: peminjaman oleh user |
+| votingDibuat | VotingSession[] | Relasi balik: sesi voting yang dibuat user |
+| suara | Suara[] | Relasi balik: suara yang diberikan user |
 | createdAt    | DateTime | Auto                                  |
 | updatedAt    | DateTime | Auto                                  |
 
@@ -104,7 +106,42 @@
 | createdAt      | DateTime   | Auto                                              |
 | updatedAt      | DateTime   | Auto                                              |
 
+## VotingSession
+| Field      | Type     | Keterangan                                       |
+|------------|----------|--------------------------------------------------|
+| id         | String   | UUID, primary key                                |
+| judul      | String   | Judul sesi voting                                |
+| deskripsi  | String?  | Deskripsi (opsional)                             |
+| status     | Enum     | TERBUKA, DITUTUP (default TERBUKA)               |
+| ditutupPada| DateTime?| Diisi server saat ditutup, null = masih terbuka  |
+| createdBy  | String   | FK ke User (pembuat sesi)                        |
+| createdAt  | DateTime | Auto                                             |
+| updatedAt  | DateTime | Auto                                             |
+
+## Pilihan
+| Field     | Type     | Keterangan                              |
+|-----------|----------|------------------------------------------|
+| id        | String   | UUID, primary key                        |
+| sessionId | String   | FK ke VotingSession (Cascade)            |
+| teks      | String   | Teks pilihan (max 100 karakter)          |
+| urutan    | Int      | Urutan tampil (diisi dari indeks array)  |
+| createdAt | DateTime | Auto                                     |
+| updatedAt | DateTime | Auto                                     |
+
+## Suara
+| Field     | Type     | Keterangan                                          |
+|-----------|----------|------------------------------------------------------|
+| id        | String   | UUID, primary key                                    |
+| sessionId | String   | FK ke VotingSession (Cascade)                        |
+| userId    | String   | FK ke User (pemberi suara, Restrict)                 |
+| pilihanId | String   | FK ke Pilihan (Cascade)                              |
+| createdAt | DateTime | Auto                                                 |
+| *(unique)*| —        | `(sessionId, userId)` — 1 user 1 suara per sesi      |
+
 ## Catatan Relasi
+### Sprint 11 — Voting
+Tiga model berjenjang: `VotingSession` → `Pilihan` → `Suara` (semua turunannya `Cascade`, mengikuti pola Absensi: data turunan ikut terhapus bersama induk), plus `Suara.userId` → `User` dengan `Restrict`. Unique gabungan `(sessionId, userId)` menegakkan 1 orang 1 suara per sesi di level database (controller menangkap `P2002` → `409`, pola sama dengan double check-in). `Suara` menyimpan relasi user demi integritas anti-dobel, tetapi **tidak pernah diekspos** oleh API mana pun — hasil hanya berupa agregat jumlah per pilihan, dan itu pun hanya setelah status `DITUTUP`. Perubahan skema di-apply lewat `prisma db push`, konsisten dengan Sprint 4-10.
+
 ### Sprint 10 — Inventaris
 Dua relasi di `Peminjaman`: many-to-one ke `Barang` (`onDelete: Cascade` — riwayat peminjaman adalah data turunan barang, ikut terhapus saat barang dihapus; controller tetap menolak `409` jika masih ada peminjaman aktif) dan ke `User` (`onDelete: Restrict`, konsisten pola lain). `tanggalKembali` tidak pernah diterima dari body — hanya diisi server oleh endpoint kembalikan, menjamin `tanggalKembali > tanggalPinjam`. Cek stok (`jumlah − Σ peminjaman aktif`) berjalan di level aplikasi dalam `prisma.$transaction` (bukan constraint DB): cukup akurat untuk skala OSIS tanpa kompleksitas trigger. Perubahan skema di-apply lewat `prisma db push`, konsisten dengan Sprint 4-9.
 

@@ -94,3 +94,12 @@
 - Backend: `POST /api/peminjaman/:id/kembalikan` (status → DIKEMBALIKAN, `tanggalKembali` diisi server) — peminjam sendiri atau SUPER_ADMIN/ADMIN/KETUA
 - Backend: validasi Zod (`inventarisSchema.ts`)
 - Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui
+
+## Sprint 11 — Voting ✅ (Selesai)
+- Database: model `VotingSession` + `Pilihan` + `Suara`, enum `StatusVoting` (TERBUKA/DITUTUP), unique `(sessionId, userId)` cegah vote dobel di level DB — apply via `prisma db push`
+- Backend: CRUD sesi voting di `/api/voting` — create dengan 2-10 pilihan (validasi Zod + tolak duplikat), update judul/deskripsi kapan pun & replace pilihan hanya jika belum ada suara (`409`), delete role SUPER_ADMIN & ADMIN
+- Backend: `POST /api/voting/:id/tutup` & `/buka` (kelola status sesi) — role SUPER_ADMIN, ADMIN, KETUA
+- Backend: `POST /api/voting/:id/vote` (1 suara per user via unique constraint, cek sesi TERBUKA, cek pilihan milik sesi) — semua role yang login
+- Backend: `GET /api/voting/:id/hasil` (jumlah per pilihan urut terbanyak, hanya saat DITUTUP) & `GET /api/voting` / `/:id` (detail dengan `sudahVoting` + totalSuara, rincian per pilihan hanya saat ditutup) — semua role yang login
+- Keputusan desain: hasil terlihat hanya setelah ditutup (hindari efek bandwagon, turnout tetap terlihat); suara pseudonim di data (untuk anti-dobel) tapi anonim di API (tidak ada endpoint yang membocorkan pilihan per orang)
+- Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui

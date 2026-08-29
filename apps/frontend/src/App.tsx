@@ -22,6 +22,9 @@ import BarangEditPage from './pages/BarangEditPage'
 import PeminjamanPage from './pages/PeminjamanPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/layout/DashboardLayout'
+import VotingPage from './pages/VotingPage'
+import VotingCreatePage from './pages/VotingCreatePage'
+import VotingDetailPage from './pages/VotingDetailPage'
 
 function App() {
   return (
@@ -228,6 +231,36 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/voting"
+  element={
+    <ProtectedRoute>
+      <DashboardLayout>
+        <VotingPage />
+      </DashboardLayout>
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/voting/create"
+  element={
+    <ProtectedRoute>
+      <DashboardLayout>
+        <VotingCreatePage />
+      </DashboardLayout>
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/voting/:id"
+  element={
+    <ProtectedRoute>
+      <DashboardLayout>
+        <VotingDetailPage />
+      </DashboardLayout>
+    </ProtectedRoute>
+  }
+/>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
