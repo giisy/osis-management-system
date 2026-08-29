@@ -13,10 +13,14 @@ import peminjamanRoutes from './routes/peminjamanRoutes'
 import votingRoutes from './routes/votingRoutes'
 
 const app = express()
-const PORT = 4000
+const PORT = process.env.PORT || 4000
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[]
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: allowedOrigins,
   credentials: true,
 }))
 app.use(express.json())
