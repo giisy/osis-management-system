@@ -1,5 +1,6 @@
 import { api } from '../../lib/axios'
 import type { LoginFormData } from './loginSchema'
+import type { RegisterFormData } from './registerSchema'
 
 interface LoginResponse {
   success: boolean
@@ -17,5 +18,10 @@ interface LoginResponse {
 
 export const loginUser = async (payload: LoginFormData): Promise<LoginResponse> => {
   const response = await api.post('/api/auth/login', payload)
+  return response.data
+}
+
+export const registerUser = async (payload: RegisterFormData) => {
+  const response = await api.post('/api/auth/register', payload)
   return response.data
 }

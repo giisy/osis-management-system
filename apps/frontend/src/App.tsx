@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import AnggotaPage from './pages/AnggotaPage'
 import AnggotaCreatePage from './pages/AnggotaCreatePage'
@@ -31,6 +32,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route
           path="/dashboard"
           element={
@@ -232,35 +234,35 @@ function App() {
           }
         />
         <Route
-  path="/voting"
-  element={
-    <ProtectedRoute>
-      <DashboardLayout>
-        <VotingPage />
-      </DashboardLayout>
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/voting/create"
-  element={
-    <ProtectedRoute>
-      <DashboardLayout>
-        <VotingCreatePage />
-      </DashboardLayout>
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/voting/:id"
-  element={
-    <ProtectedRoute>
-      <DashboardLayout>
-        <VotingDetailPage />
-      </DashboardLayout>
-    </ProtectedRoute>
-  }
-/>
+          path="/voting"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <VotingPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/voting/create"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <VotingCreatePage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/voting/:id"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <VotingDetailPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { isAxiosError } from 'axios'
 import { loginSchema, type LoginFormData } from '../features/auth/loginSchema'
 import { useLogin } from '../features/auth/useLogin'
+import { Link } from 'react-router-dom'
 
 export default function LoginPage() {
   const {
@@ -72,6 +73,12 @@ export default function LoginPage() {
           </button>
         </form>
       </div>
+              <p className="text-sm text-gray-500 text-center mt-4">
+          Belum punya akun?{' '}
+          <Link to="/register" className="text-blue-600 hover:underline">
+            Daftar
+          </Link>
+        </p>
     </div>
   )
 }
