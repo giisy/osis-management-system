@@ -94,6 +94,13 @@ export const createAnggota = async (req: AuthRequest, res: Response) => {
     })
   }
 
+  if (parsed.data.role === 'SUPER_ADMIN' && req.user!.role !== 'SUPER_ADMIN') {
+    return res.status(403).json({
+      success: false,
+      message: 'Hanya SUPER_ADMIN yang bisa memberikan role SUPER_ADMIN',
+    })
+  }
+
   const { name, email, password, role, nis, kelas, jenisKelamin, noTelepon, alamat, divisiId } =
     parsed.data
 
@@ -183,6 +190,13 @@ export const updateAnggota = async (req: AuthRequest, res: Response) => {
       success: false,
       message: 'Validasi gagal',
       errors: parsed.error.issues,
+    })
+  }
+
+  if (parsed.data.role === 'SUPER_ADMIN' && req.user!.role !== 'SUPER_ADMIN') {
+    return res.status(403).json({
+      success: false,
+      message: 'Hanya SUPER_ADMIN yang bisa memberikan role SUPER_ADMIN',
     })
   }
 

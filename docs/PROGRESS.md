@@ -103,3 +103,14 @@
 - Backend: `GET /api/voting/:id/hasil` (jumlah per pilihan urut terbanyak, hanya saat DITUTUP) & `GET /api/voting` / `/:id` (detail dengan `sudahVoting` + totalSuara, rincian per pilihan hanya saat ditutup) — semua role yang login
 - Keputusan desain: hasil terlihat hanya setelah ditutup (hindari efek bandwagon, turnout tetap terlihat); suara pseudonim di data (untuk anti-dobel) tapi anonim di API (tidak ada endpoint yang membocorkan pilihan per orang)
 - Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui
+
+## Sprint 12 — Security Hardening ✅ (Selesai)
+- Audit keamanan menyeluruh backend (secrets & git history, authn/authz semua endpoint, validasi & injection, error handling, rate limiting, CORS, `npm audit`, password & data sensitif) — dilaporkan per severity sebelum eksekusi; hanya temuan HIGH yang diperbaiki sprint ini sesuai approval
+- Backend: rate limiting auth via `express-rate-limit` (`rateLimit.ts`) — `POST /api/auth/login` maks 5 percobaan gagal/15 menit/IP (`skipSuccessfulRequests`), `POST /api/auth/register` maks 5 request/1 jam/IP; response `429` JSON format standar + header `RateLimit-*`
+- Backend: `app.set('trust proxy', 1)` — wajib di balik proxy Vercel agar `req.ip` (kunci rate limit) terbaca dari `X-Forwarded-For`, bukan IP proxy yang sama untuk semua user
+- Backend: guard privilege escalation di `anggotaController` — role `SUPER_ADMIN` hanya bisa diberikan oleh `SUPER_ADMIN` di `POST`/`PUT /api/anggota`; ADMIN yang mencoba → `403` (ADMIN tetap boleh assign ADMIN/KETUA/ANGGOTA)
+- Backend: field PII anggota (`email`, `nis`, `jenisKelamin`, `noTelepon`, `alamat`) di `GET /api/divisi/:id` hanya dikirim ke SUPER_ADMIN/ADMIN/KETUA; role lain menerima daftar anggota tanpa field sensitif (setara gating `/api/anggota`)
+- Backend: global error handler di `app.ts` — error tak terduka ditangkap Express 5 dan selalu di-return JSON `{success:false}` 500 generik saat `NODE_ENV=production`; detail error hanya ke log server via `console.error`; status 4xx milik body-parser (mis. JSON rusak → 400) tetap dipertahankan
+- Verifikasi: `npm run build:local` bersih + smoke test runtime dengan database dummy (tidak menyentuh Supabase): login/register limiter benar menolak request ke-6 dengan 429, error terverifikasi kembali sebagai JSON (bukan HTML/stack)
+- Tanpa perubahan `schema.prisma` — `db push` tidak diperlukan
+- Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui

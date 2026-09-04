@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { ErrorRequestHandler } from 'express'
 import cors from 'cors'
 import authRoutes from './routes/authRoutes'
 import dashboardRoutes from './routes/dashboardRoutes'
@@ -13,6 +13,8 @@ import peminjamanRoutes from './routes/peminjamanRoutes'
 import votingRoutes from './routes/votingRoutes'
 
 const app = express()
+
+app.set('trust proxy', 1)
 
 const allowedOrigins = [
   'http://localhost:5173',
@@ -40,5 +42,30 @@ app.use('/api/kas', kasRoutes)
 app.use('/api/inventaris', inventarisRoutes)
 app.use('/api/peminjaman', peminjamanRoutes)
 app.use('/api/voting', votingRoutes)
+
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  console.error(err)
+
+  if (res.headersSent) {
+    return next(err)
+  }
+
+  const isProduction = process.env.NODE_ENV === 'production'
+  const status =
+    typeof err.status === 'number' && err.status >= 400 && err.status < 500
+      ? err.status
+      : 500
+
+  res.status(status).json({
+    success: false,
+    message: isProduction
+      ? status === 500
+        ? 'Terjadi kesalahan server'
+        : 'Permintaan tidak valid'
+      : err.message || 'Terjadi kesalahan server',
+  })
+}
+
+app.use(errorHandler)
 
 export default app

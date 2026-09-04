@@ -139,6 +139,9 @@
 | *(unique)*| —        | `(sessionId, userId)` — 1 user 1 suara per sesi      |
 
 ## Catatan Relasi
+### Sprint 12 — Security Hardening
+**Tidak ada perubahan skema** — seluruh perbaikan hasil audit keamanan berada di level aplikasi: rate limiting endpoint auth (`express-rate-limit`), pembatasan assignment role `SUPER_ADMIN` (validasi controller), stripping field PII pada `GET /api/divisi/:id` untuk role non-privilege, dan global error handler JSON. `prisma db push` tidak diperlukan; `schema.prisma` dan database tidak tersentuh.
+
 ### Sprint 11 — Voting
 Tiga model berjenjang: `VotingSession` → `Pilihan` → `Suara` (semua turunannya `Cascade`, mengikuti pola Absensi: data turunan ikut terhapus bersama induk), plus `Suara.userId` → `User` dengan `Restrict`. Unique gabungan `(sessionId, userId)` menegakkan 1 orang 1 suara per sesi di level database (controller menangkap `P2002` → `409`, pola sama dengan double check-in). `Suara` menyimpan relasi user demi integritas anti-dobel, tetapi **tidak pernah diekspos** oleh API mana pun — hasil hanya berupa agregat jumlah per pilihan, dan itu pun hanya setelah status `DITUTUP`. Perubahan skema di-apply lewat `prisma db push`, konsisten dengan Sprint 4-10.
 

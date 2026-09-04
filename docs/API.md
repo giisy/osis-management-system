@@ -1,6 +1,10 @@
 # API Endpoints
 
+> **Format error tak terduga**: error yang tidak tertangani controller ditangkap global error handler — selalu JSON `{ "success": false, "message": "Terjadi kesalahan server" }` dengan status 500. Detail internal (stack trace, nama file, query) tidak pernah dikirim ke client saat `NODE_ENV=production`; detail lengkap hanya tercatat di log server (`console.error`).
+
 ## Authentication
+
+> **Rate limiting**: endpoint publik auth dibatasi per IP — `POST /register` maksimal **5 request per 1 jam**, `POST /login` maksimal **5 percobaan gagal per 15 menit** (login sukses tidak dihitung). Melebihi batas → `429` dengan pesan JSON standar.
 
 ### POST /api/auth/register
 Registrasi user baru.
@@ -26,6 +30,7 @@ Registrasi user baru.
 **Response gagal:**
 - `400` — Validasi gagal
 - `409` — Email sudah terdaftar
+- `429` — Terlalu banyak permintaan registrasi (maks 5 per 1 jam per IP)
 
 ---
 
@@ -55,6 +60,7 @@ Login user, menghasilkan JWT token.
 **Response gagal:**
 - `400` — Validasi gagal
 - `401` — Email atau password salah
+- `429` — Terlalu banyak percobaan login (maks 5 percobaan gagal per 15 menit per IP; login sukses tidak dihitung)
 
 ---
 
@@ -182,6 +188,8 @@ Tambah anggota baru. Role `SUPER_ADMIN` atau `ADMIN` saja.
 }
 ```
 
+Catatan role: `ADMIN` boleh memberi role `ADMIN`, `KETUA`, atau `ANGGOTA`. Role **`SUPER_ADMIN` hanya boleh diberikan oleh user dengan role `SUPER_ADMIN`** — permintaan dari `ADMIN` yang mencoba memberi/mengubah role ke `SUPER_ADMIN` ditolak `403` (validasi di controller, bukan hanya frontend).
+
 **Response sukses (201):**
 ```json
 {
@@ -194,7 +202,7 @@ Tambah anggota baru. Role `SUPER_ADMIN` atau `ADMIN` saja.
 **Response gagal:**
 - `400` — Validasi gagal
 - `401` — Token tidak ditemukan / tidak valid
-- `403` — Role tidak diizinkan
+- `403` — Role tidak diizinkan (termasuk non-SUPER_ADMIN yang mencoba memberi role `SUPER_ADMIN`)
 - `404` — Divisi tidak ditemukan (`divisiId` tidak valid)
 - `409` — Email atau NIS sudah terdaftar
 
@@ -232,7 +240,7 @@ Assign/pindahkan anggota ke divisi dilakukan lewat field `divisiId`: isi dengan 
 **Response gagal:**
 - `400` — Validasi gagal
 - `401` — Token tidak ditemukan / tidak valid
-- `403` — Role tidak diizinkan
+- `403` — Role tidak diizinkan (termasuk non-SUPER_ADMIN yang mencoba mengubah role menjadi `SUPER_ADMIN`)
 - `404` — Anggota tidak ditemukan / divisi tidak ditemukan (`divisiId` tidak valid)
 - `409` — Email atau NIS sudah digunakan
 
@@ -289,6 +297,8 @@ List semua divisi beserta jumlah anggotanya.
 
 ### GET /api/divisi/:id
 Detail satu divisi + daftar anggotanya (urut nama, tanpa `password`).
+
+> **Pembatasan PII**: field sensitif anggota (`email`, `nis`, `jenisKelamin`, `noTelepon`, `alamat`) hanya disertakan untuk role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`. Role lain (mis. `ANGGOTA`) menerima item anggota tanpa field tersebut — hanya `id`, `name`, `role`, `kelas`, `createdAt`, `updatedAt`. Setara dengan gating `/api/anggota` yang ADMIN/KETUA-only.
 
 **Response sukses (200):**
 ```json

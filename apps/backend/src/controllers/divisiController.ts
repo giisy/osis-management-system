@@ -33,27 +33,31 @@ export const listDivisi = async (req: AuthRequest, res: Response) => {
   })
 }
 
+const divisiAnggotaSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  nis: true,
+  kelas: true,
+  jenisKelamin: true,
+  noTelepon: true,
+  alamat: true,
+  createdAt: true,
+  updatedAt: true,
+}
+
 export const getDivisi = async (req: AuthRequest, res: Response) => {
   const { id } = req.params as { id: string }
+
+  const canSeePii = ['SUPER_ADMIN', 'ADMIN', 'KETUA'].includes(req.user!.role)
 
   const divisi = await prisma.divisi.findUnique({
     where: { id },
     select: {
       ...divisiSelect,
       anggota: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          nis: true,
-          kelas: true,
-          jenisKelamin: true,
-          noTelepon: true,
-          alamat: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+        select: divisiAnggotaSelect,
         orderBy: { name: 'asc' },
       },
     },
@@ -66,9 +70,19 @@ export const getDivisi = async (req: AuthRequest, res: Response) => {
     })
   }
 
+  const anggota = canSeePii
+    ? divisi.anggota
+    : divisi.anggota.map((a) => {
+        const { email, nis, jenisKelamin, noTelepon, alamat, ...safe } = a
+        return safe
+      })
+
   res.status(200).json({
     success: true,
-    data: divisi,
+    data: {
+      ...divisi,
+      anggota,
+    },
   })
 }
 
