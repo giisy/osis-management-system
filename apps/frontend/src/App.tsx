@@ -26,6 +26,24 @@ import DashboardLayout from './components/layout/DashboardLayout'
 import VotingPage from './pages/VotingPage'
 import VotingCreatePage from './pages/VotingCreatePage'
 import VotingDetailPage from './pages/VotingDetailPage'
+import UnauthorizedPage from './pages/UnauthorizedPage'
+
+// Role yang boleh CRUD penuh Anggota (SUPER_ADMIN, ADMIN)
+const ANGGOTA_MANAGE = ['SUPER_ADMIN', 'ADMIN'] as const
+// Role yang boleh lihat data Anggota (semua kecuali ANGGOTA sendiri)
+const ANGGOTA_VIEW = ['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS', 'BENDAHARA', 'KOORDINATOR_DIVISI', 'PEMBINA'] as const
+// Role yang boleh manage Divisi
+const DIVISI_MANAGE = ['SUPER_ADMIN', 'ADMIN'] as const
+// Role yang boleh buat/edit Agenda (Penuh + Buat/Edit)
+const AGENDA_MANAGE = ['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS', 'KOORDINATOR_DIVISI'] as const
+// Role yang boleh buat/edit Pengumuman (Penuh + Buat/Edit)
+const PENGUMUMAN_MANAGE = ['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS'] as const
+// Kas catat — BENDAHARA saja (sesuai matriks final, S/A TIDAK termasuk)
+const KAS_MANAGE = ['BENDAHARA'] as const
+// Role yang boleh manage Inventaris
+const INVENTARIS_MANAGE = ['SUPER_ADMIN', 'ADMIN'] as const
+// Voting buat/edit sesi (Penuh + Buat/Edit)
+const VOTING_MANAGE = ['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS'] as const
 
 function App() {
   return (
@@ -33,6 +51,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route
           path="/dashboard"
           element={
@@ -43,10 +62,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* Anggota — Lihat: semua kecuali ANGGOTA. Kelola: SUPER_ADMIN, ADMIN */}
         <Route
           path="/anggota"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...ANGGOTA_VIEW]}>
               <DashboardLayout>
                 <AnggotaPage />
               </DashboardLayout>
@@ -56,7 +76,7 @@ function App() {
         <Route
           path="/anggota/create"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...ANGGOTA_MANAGE]}>
               <DashboardLayout>
                 <AnggotaCreatePage />
               </DashboardLayout>
@@ -66,13 +86,14 @@ function App() {
         <Route
           path="/anggota/:id/edit"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...ANGGOTA_MANAGE]}>
               <DashboardLayout>
                 <AnggotaEditPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
         />
+        {/* Divisi — Lihat: semua role (termasuk ANGGOTA), jadi tanpa allowedRoles */}
         <Route
           path="/divisi"
           element={
@@ -86,7 +107,7 @@ function App() {
         <Route
           path="/divisi/create"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...DIVISI_MANAGE]}>
               <DashboardLayout>
                 <DivisiCreatePage />
               </DashboardLayout>
@@ -96,13 +117,14 @@ function App() {
         <Route
           path="/divisi/:id/edit"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...DIVISI_MANAGE]}>
               <DashboardLayout>
                 <DivisiEditPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
         />
+        {/* Agenda — Lihat: semua role, jadi tanpa allowedRoles */}
         <Route
           path="/agenda"
           element={
@@ -116,7 +138,7 @@ function App() {
         <Route
           path="/agenda/create"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...AGENDA_MANAGE]}>
               <DashboardLayout>
                 <AgendaCreatePage />
               </DashboardLayout>
@@ -126,13 +148,14 @@ function App() {
         <Route
           path="/agenda/:id/edit"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...AGENDA_MANAGE]}>
               <DashboardLayout>
                 <AgendaEditPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
         />
+        {/* Pengumuman — Lihat: semua role, jadi tanpa allowedRoles */}
         <Route
           path="/pengumuman"
           element={
@@ -146,7 +169,7 @@ function App() {
         <Route
           path="/pengumuman/create"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...PENGUMUMAN_MANAGE]}>
               <DashboardLayout>
                 <PengumumanCreatePage />
               </DashboardLayout>
@@ -156,13 +179,14 @@ function App() {
         <Route
           path="/pengumuman/:id/edit"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...PENGUMUMAN_MANAGE]}>
               <DashboardLayout>
                 <PengumumanEditPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
         />
+        {/* Kas — baca: semua role. Catat: BENDAHARA saja */}
         <Route
           path="/kas"
           element={
@@ -176,7 +200,7 @@ function App() {
         <Route
           path="/kas/create"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...KAS_MANAGE]}>
               <DashboardLayout>
                 <KasCreatePage />
               </DashboardLayout>
@@ -186,13 +210,14 @@ function App() {
         <Route
           path="/kas/:id/edit"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...KAS_MANAGE]}>
               <DashboardLayout>
                 <KasEditPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
         />
+        {/* Inventaris — Lihat: semua role, jadi tanpa allowedRoles */}
         <Route
           path="/inventaris"
           element={
@@ -206,7 +231,7 @@ function App() {
         <Route
           path="/inventaris/create"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...INVENTARIS_MANAGE]}>
               <DashboardLayout>
                 <BarangCreatePage />
               </DashboardLayout>
@@ -216,13 +241,14 @@ function App() {
         <Route
           path="/inventaris/:id/edit"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...INVENTARIS_MANAGE]}>
               <DashboardLayout>
                 <BarangEditPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
         />
+        {/* Peminjaman — create untuk diri sendiri: semua role boleh */}
         <Route
           path="/peminjaman"
           element={
@@ -233,6 +259,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* Voting — lihat & vote: semua role. Buat/edit sesi: dibatasi */}
         <Route
           path="/voting"
           element={
@@ -246,7 +273,7 @@ function App() {
         <Route
           path="/voting/create"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[...VOTING_MANAGE]}>
               <DashboardLayout>
                 <VotingCreatePage />
               </DashboardLayout>

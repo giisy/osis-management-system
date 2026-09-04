@@ -13,20 +13,21 @@ import {
   LogOut,
   Menu,
 } from 'lucide-react'
+import { getCurrentRole, canViewAnggota } from '../../lib/permissions'
 
 interface DashboardLayoutProps {
   children: ReactNode
 }
 
 const menuItems = [
-  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { label: 'Anggota', path: '/anggota', icon: Users },
-  { label: 'Divisi', path: '/divisi', icon: FolderKanban },
-  { label: 'Agenda', path: '/agenda', icon: CalendarDays },
-  { label: 'Pengumuman', path: '/pengumuman', icon: Megaphone },
-  { label: 'Kas', path: '/kas', icon: Wallet },
-  { label: 'Inventaris', path: '/inventaris', icon: Archive },
-  { label: 'Voting', path: '/voting', icon: Vote },
+  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, visible: () => true },
+  { label: 'Anggota', path: '/anggota', icon: Users, visible: canViewAnggota },
+  { label: 'Divisi', path: '/divisi', icon: FolderKanban, visible: () => true },
+  { label: 'Agenda', path: '/agenda', icon: CalendarDays, visible: () => true },
+  { label: 'Pengumuman', path: '/pengumuman', icon: Megaphone, visible: () => true },
+  { label: 'Kas', path: '/kas', icon: Wallet, visible: () => true },
+  { label: 'Inventaris', path: '/inventaris', icon: Archive, visible: () => true },
+  { label: 'Voting', path: '/voting', icon: Vote, visible: () => true },
 ]
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -36,6 +37,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const userJson = localStorage.getItem('user')
   const user = userJson ? JSON.parse(userJson) : null
+  const role = getCurrentRole()
+
+  const visibleMenuItems = menuItems.filter((item) => item.visible(role))
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -66,7 +70,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         <nav className="p-2 flex-1">
-          {menuItems.map((item) => {
+          {visibleMenuItems.map((item) => {
             const isActive = location.pathname === item.path
             const Icon = item.icon
             return (
