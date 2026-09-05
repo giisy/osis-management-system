@@ -49,7 +49,6 @@ model Divisi {
 enum Role {
   SUPER_ADMIN
   ADMIN
-  KETUA
   SEKRETARIS
   BENDAHARA
   KOORDINATOR_DIVISI
