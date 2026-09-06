@@ -39,11 +39,21 @@ const AGENDA_MANAGE = ['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS', 'KOORDINATOR_DIVISI
 // Role yang boleh buat/edit Pengumuman (Penuh + Buat/Edit)
 const PENGUMUMAN_MANAGE = ['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS'] as const
 // Kas catat — BENDAHARA saja (sesuai matriks final, S/A TIDAK termasuk)
-const KAS_EDIT_ACCESS = ['BENDAHARA', 'SUPER_ADMIN'] as const
+const KAS_MANAGE = ['BENDAHARA'] as const
 // Role yang boleh manage Inventaris
 const INVENTARIS_MANAGE = ['SUPER_ADMIN', 'ADMIN'] as const
 // Voting buat/edit sesi (Penuh + Buat/Edit)
 const VOTING_MANAGE = ['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS'] as const
+
+// Redirect cerdas untuk path root ("/") dan path tidak dikenal (catch-all).
+// Tidak bisa pakai ProtectedRoute di sini karena ProtectedRoute hanya
+// menangani kasus "belum login -> redirect ke /login". Di sini kita perlu
+// kebalikannya juga: "sudah login tapi path tidak valid -> redirect ke
+// /dashboard", bukan dipaksa balik ke /login.
+function AuthAwareRedirect() {
+  const token = localStorage.getItem('token')
+  return <Navigate to={token ? '/dashboard' : '/login'} replace />
+}
 
 function App() {
   return (
@@ -52,6 +62,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route path="/" element={<AuthAwareRedirect />} />
         <Route
           path="/dashboard"
           element={
@@ -200,7 +211,7 @@ function App() {
         <Route
           path="/kas/create"
           element={
-            <ProtectedRoute allowedRoles={[...KAS_EDIT_ACCESS]}>
+            <ProtectedRoute allowedRoles={[...KAS_MANAGE]}>
               <DashboardLayout>
                 <KasCreatePage />
               </DashboardLayout>
@@ -208,15 +219,15 @@ function App() {
           }
         />
         <Route
-  path="/kas/:id/edit"
-  element={
-    <ProtectedRoute allowedRoles={[...KAS_EDIT_ACCESS]}>
-      <DashboardLayout>
-        <KasEditPage />
-      </DashboardLayout>
-    </ProtectedRoute>
-  }
-/>
+          path="/kas/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={[...KAS_MANAGE]}>
+              <DashboardLayout>
+                <KasEditPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
         {/* Inventaris — Lihat: semua role, jadi tanpa allowedRoles */}
         <Route
           path="/inventaris"
@@ -290,7 +301,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<AuthAwareRedirect />} />
       </Routes>
     </BrowserRouter>
   )
