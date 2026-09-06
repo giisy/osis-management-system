@@ -13,14 +13,14 @@ router.get('/saya', authenticate, getAbsensiSaya)
 router.get(
   '/agenda/:agendaId',
   authenticate,
-  authorize('SUPER_ADMIN', 'ADMIN', 'KETUA'),
+  authorize('SUPER_ADMIN', 'ADMIN', 'SEKRETARIS', 'KOORDINATOR_DIVISI', 'PEMBINA'),
   getAbsensiAgenda,
 )
 router.post('/:agendaId/checkin', authenticate, checkinAbsensi)
 router.post(
   '/:agendaId/tandai',
   authenticate,
-  authorize('SUPER_ADMIN', 'ADMIN', 'KETUA'),
+  authorize('SUPER_ADMIN', 'ADMIN', 'SEKRETARIS', 'KOORDINATOR_DIVISI'),
   tandaiAbsensi,
 )
 

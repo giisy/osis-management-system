@@ -94,10 +94,14 @@ export const createAnggota = async (req: AuthRequest, res: Response) => {
     })
   }
 
-  if (parsed.data.role === 'SUPER_ADMIN' && req.user!.role !== 'SUPER_ADMIN') {
+  const requestedRole = parsed.data.role
+  if (
+    (requestedRole === 'SUPER_ADMIN' || requestedRole === 'ADMIN') &&
+    req.user!.role !== 'SUPER_ADMIN'
+  ) {
     return res.status(403).json({
       success: false,
-      message: 'Hanya SUPER_ADMIN yang bisa memberikan role SUPER_ADMIN',
+      message: 'Hanya SUPER_ADMIN yang bisa memberikan role SUPER_ADMIN atau ADMIN',
     })
   }
 
@@ -193,10 +197,14 @@ export const updateAnggota = async (req: AuthRequest, res: Response) => {
     })
   }
 
-  if (parsed.data.role === 'SUPER_ADMIN' && req.user!.role !== 'SUPER_ADMIN') {
+  const requestedRole = parsed.data.role
+  if (
+    (requestedRole === 'SUPER_ADMIN' || requestedRole === 'ADMIN') &&
+    req.user!.role !== 'SUPER_ADMIN'
+  ) {
     return res.status(403).json({
       success: false,
-      message: 'Hanya SUPER_ADMIN yang bisa memberikan role SUPER_ADMIN',
+      message: 'Hanya SUPER_ADMIN yang bisa memberikan role SUPER_ADMIN atau ADMIN',
     })
   }
 

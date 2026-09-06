@@ -7,7 +7,7 @@
 | name         | String   |                                       |
 | email        | String   | Unique                               |
 | password     | String   | Hasil hash bcrypt (bukan plain text)|
-| role         | Enum     | SUPER_ADMIN, ADMIN, KETUA, ANGGOTA  |
+| role         | Enum     | SUPER_ADMIN, ADMIN, SEKRETARIS, BENDAHARA, KOORDINATOR_DIVISI, ANGGOTA, PEMBINA |
 | nis          | String?  | Nomor Induk Siswa, Unique (opsional) |
 | kelas        | String?  | Kelas anggota, mis. "XII IPA 1" (opsional) |
 | jenisKelamin | String?  | "L" atau "P" (opsional)              |
@@ -139,6 +139,9 @@
 | *(unique)*| —        | `(sessionId, userId)` — 1 user 1 suara per sesi      |
 
 ## Catatan Relasi
+### Sprint 13 — Restrukturisasi Role (4 → 7)
+Enum `Role` berubah dari `SUPER_ADMIN/ADMIN/KETUA/ANGGOTA` menjadi `SUPER_ADMIN/ADMIN/SEKRETARIS/BENDAHARA/KOORDINATOR_DIVISI/ANGGOTA/PEMBINA` — tanpa perubahan kolom/tabel lain. Migrasi 3 fase: (A) `ADD VALUE` ×4 nilai baru, (B) data — `UPDATE User SET role='SUPER_ADMIN' WHERE role='KETUA'` (0 baris) dan `WHERE role='ADMIN'` (1 baris, approve owner) via `prisma db execute`, (C) hapus `KETUA` via type rebuild `prisma db push --accept-data-loss` (Postgres tidak mendukung DROP VALUE; cast `USING` fail-safe bila masih ada nilai tersisa). Hasil final: 1 SUPER_ADMIN, 4 ANGGOTA, enum 7 nilai, konsisten dengan `schema.prisma`. Catatan operasional: role di-bake di JWT saat login (7 hari, tanpa refresh) — user yang di-promote wajib re-login agar claim role baru aktif (sudah dilakukan owner sebelum deploy kode).
+
 ### Sprint 12 — Security Hardening
 **Tidak ada perubahan skema** — seluruh perbaikan hasil audit keamanan berada di level aplikasi: rate limiting endpoint auth (`express-rate-limit`), pembatasan assignment role `SUPER_ADMIN` (validasi controller), stripping field PII pada `GET /api/divisi/:id` untuk role non-privilege, dan global error handler JSON. `prisma db push` tidak diperlukan; `schema.prisma` dan database tidak tersentuh.
 

@@ -4,7 +4,7 @@ export const createAnggotaSchema = z.object({
   name: z.string().min(3, 'Nama minimal 3 karakter'),
   email: z.string().email('Email tidak valid'),
   password: z.string().min(8, 'Password minimal 8 karakter'),
-  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'KETUA', 'ANGGOTA']).optional(),
+  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS', 'BENDAHARA', 'KOORDINATOR_DIVISI', 'ANGGOTA', 'PEMBINA']).optional(),
   nis: z
     .string()
     .regex(/^\d{6,}$/, 'NIS harus berupa angka minimal 6 digit')
@@ -19,7 +19,7 @@ export const createAnggotaSchema = z.object({
 export const updateAnggotaSchema = z.object({
   name: z.string().min(3, 'Nama minimal 3 karakter').optional(),
   email: z.string().email('Email tidak valid').optional(),
-  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'KETUA', 'ANGGOTA']).optional(),
+  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS', 'BENDAHARA', 'KOORDINATOR_DIVISI', 'ANGGOTA', 'PEMBINA']).optional(),
   nis: z
     .string()
     .regex(/^\d{6,}$/, 'NIS harus berupa angka minimal 6 digit')

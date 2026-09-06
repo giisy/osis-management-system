@@ -78,7 +78,7 @@ export const createPeminjaman = async (req: AuthRequest, res: Response) => {
   }
 
   const { barangId, jumlah, keperluan, tanggalPinjam, userId } = parsed.data
-  const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'KETUA'].includes(req.user!.role)
+  const isAdmin = ['SUPER_ADMIN', 'ADMIN'].includes(req.user!.role)
   const peminjamId = userId && isAdmin ? userId : req.user!.userId
 
   try {
@@ -177,7 +177,7 @@ export const kembalikanPeminjaman = async (req: AuthRequest, res: Response) => {
     })
   }
 
-  const isAdmin = ['SUPER_ADMIN', 'ADMIN', 'KETUA'].includes(req.user!.role)
+  const isAdmin = ['SUPER_ADMIN', 'ADMIN'].includes(req.user!.role)
   if (!isAdmin && existingPeminjaman.userId !== req.user!.userId) {
     return res.status(403).json({
       success: false,

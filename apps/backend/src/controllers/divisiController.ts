@@ -50,7 +50,14 @@ const divisiAnggotaSelect = {
 export const getDivisi = async (req: AuthRequest, res: Response) => {
   const { id } = req.params as { id: string }
 
-  const canSeePii = ['SUPER_ADMIN', 'ADMIN', 'KETUA'].includes(req.user!.role)
+  const canSeePii = [
+    'SUPER_ADMIN',
+    'ADMIN',
+    'SEKRETARIS',
+    'BENDAHARA',
+    'KOORDINATOR_DIVISI',
+    'PEMBINA',
+  ].includes(req.user!.role)
 
   const divisi = await prisma.divisi.findUnique({
     where: { id },

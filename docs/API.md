@@ -6,6 +6,41 @@
 
 > **Rate limiting**: endpoint publik auth dibatasi per IP — `POST /register` maksimal **5 request per 1 jam**, `POST /login` maksimal **5 percobaan gagal per 15 menit** (login sukses tidak dihitung). Melebihi batas → `429` dengan pesan JSON standar.
 
+## Roles & Matriks Permission
+
+**Role** (Sprint 13): `SUPER_ADMIN` (Ketua OSIS), `ADMIN` (Wakil Ketua), `SEKRETARIS`, `BENDAHARA`, `KOORDINATOR_DIVISI`, `ANGGOTA`, `PEMBINA` (monitoring). Role lama `KETUA` dihapus — semua user KETUA lama dimigrasikan ke `SUPER_ADMIN`.
+
+**Hierarki assignment role**: hanya `SUPER_ADMIN` yang boleh memberikan/mengubah role menjadi `SUPER_ADMIN` atau `ADMIN` (ditolak `403` untuk lainnya). Role `SEKRETARIS`, `BENDAHARA`, `KOORDINATOR_DIVISI`, `PEMBINA`, dan `ANGGOTA` boleh ditetapkan oleh `SUPER_ADMIN` maupun `ADMIN`.
+
+| Resource | SUPER_ADMIN | ADMIN | SEKRETARIS | BENDAHARA | KOORDINATOR_DIVISI | ANGGOTA | PEMBINA |
+|---|---|---|---|---|---|---|---|
+| Anggota — lihat | Ya | Ya | Ya | Ya | Ya | – | Ya |
+| Anggota — create/update/delete | Ya | Ya | – | – | – | – | – |
+| Divisi — lihat | Semua role yang login | | | | | | |
+| Divisi — create/update/delete | Ya | Ya | – | – | – | – | – |
+| Agenda — lihat | Semua role yang login | | | | | | |
+| Agenda — buat/edit | Ya | Ya | Ya | – | Ya | – | – |
+| Agenda — hapus | Ya | Ya | – | – | – | – | – |
+| Pengumuman — lihat | Semua role yang login | | | | | | |
+| Pengumuman — buat/edit | Ya | Ya | Ya | – | – | – | – |
+| Pengumuman — hapus | Ya | Ya | – | – | – | – | – |
+| Absensi — rekap per agenda | Ya | Ya | Ya | – | Ya | – | Ya |
+| Absensi — tandai manual | Ya | Ya | Ya | – | Ya | – | – |
+| Absensi — check-in diri sendiri | Semua role yang login | | | | | | |
+| Kas — baca (list/laporan/detail) | Semua role yang login | | | | | | |
+| Kas — create/update | – | – | – | Ya | – | – | – |
+| Kas — delete | Ya | – | – | – | – | – | – |
+| Inventaris — lihat | Semua role yang login | | | | | | |
+| Inventaris — create/update/delete | Ya | Ya | – | – | – | – | – |
+| Peminjaman — catat untuk diri sendiri / kembalikan milik sendiri | Semua role yang login | | | | | | |
+| Peminjaman — catat/kembalikan untuk orang lain | Ya | Ya | – | – | – | – | – |
+| Voting — lihat & memberi suara | Semua role yang login | | | | | | |
+| Voting — buat/edit/tutup/buka | Ya | Ya | Ya | – | – | – | – |
+| Voting — delete | Ya | Ya | – | – | – | – | – |
+| Dashboard stats | Semua role yang login | | | | | | |
+
+Sel kosong = tidak diizinkan (`403`). Catatan: scoping "Koordinator Divisi hanya kelola divisinya sendiri" dan "workflow approval Pembina" ditunda ke sprint terpisah — untuk sekarang akses berlaku role-level sesuai tabel di atas.
+
 ### POST /api/auth/register
 Registrasi user baru.
 
@@ -88,7 +123,7 @@ Authorization: Bearer <token>
 ## Anggota (CRUD)
 
 > Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
-> - **List & Detail** (GET): butuh role `ADMIN` atau `KETUA`
+> - **List & Detail** (GET): semua role kecuali `ANGGOTA` (SUPER_ADMIN, ADMIN, SEKRETARIS, BENDAHARA, KOORDINATOR_DIVISI, PEMBINA)
 > - **Create, Update, Delete** (POST/PUT/DELETE): butuh role `SUPER_ADMIN` atau `ADMIN`
 
 ### GET /api/anggota
@@ -178,7 +213,7 @@ Tambah anggota baru. Role `SUPER_ADMIN` atau `ADMIN` saja.
   "name": "string (min 3 karakter)",
   "email": "string (format email valid)",
   "password": "string (min 8 karakter)",
-  "role": "ANGGOTA (opsional, default ANGGOTA)",
+  "role": "SUPER_ADMIN | ADMIN | SEKRETARIS | BENDAHARA | KOORDINATOR_DIVISI | ANGGOTA | PEMBINA (opsional, default ANGGOTA)",
   "nis": "string (opsional, unique)",
   "kelas": "string (opsional)",
   "jenisKelamin": "L | P (opsional)",
@@ -188,7 +223,7 @@ Tambah anggota baru. Role `SUPER_ADMIN` atau `ADMIN` saja.
 }
 ```
 
-Catatan role: `ADMIN` boleh memberi role `ADMIN`, `KETUA`, atau `ANGGOTA`. Role **`SUPER_ADMIN` hanya boleh diberikan oleh user dengan role `SUPER_ADMIN`** — permintaan dari `ADMIN` yang mencoba memberi/mengubah role ke `SUPER_ADMIN` ditolak `403` (validasi di controller, bukan hanya frontend).
+Catatan role: hanya **`SUPER_ADMIN`** yang boleh memberikan/mengubah role menjadi `SUPER_ADMIN` atau `ADMIN` — permintaan dari role lain ditolak `403` (validasi di controller, bukan hanya frontend). Role `SEKRETARIS`, `BENDAHARA`, `KOORDINATOR_DIVISI`, `PEMBINA`, dan `ANGGOTA` boleh ditetapkan oleh `SUPER_ADMIN` maupun `ADMIN`.
 
 **Response sukses (201):**
 ```json
@@ -202,7 +237,7 @@ Catatan role: `ADMIN` boleh memberi role `ADMIN`, `KETUA`, atau `ANGGOTA`. Role 
 **Response gagal:**
 - `400` — Validasi gagal
 - `401` — Token tidak ditemukan / tidak valid
-- `403` — Role tidak diizinkan (termasuk non-SUPER_ADMIN yang mencoba memberi role `SUPER_ADMIN`)
+- `403` — Role tidak diizinkan (termasuk non-SUPER_ADMIN yang mencoba memberi role `SUPER_ADMIN` atau `ADMIN`)
 - `404` — Divisi tidak ditemukan (`divisiId` tidak valid)
 - `409` — Email atau NIS sudah terdaftar
 
@@ -218,7 +253,7 @@ Assign/pindahkan anggota ke divisi dilakukan lewat field `divisiId`: isi dengan 
 {
   "name": "string (min 3 karakter)",
   "email": "string (format email valid)",
-  "role": "ANGGOTA",
+  "role": "SUPER_ADMIN | ADMIN | SEKRETARIS | BENDAHARA | KOORDINATOR_DIVISI | ANGGOTA | PEMBINA",
   "nis": "string | null",
   "kelas": "string | null",
   "jenisKelamin": "L | P | null",
@@ -240,7 +275,7 @@ Assign/pindahkan anggota ke divisi dilakukan lewat field `divisiId`: isi dengan 
 **Response gagal:**
 - `400` — Validasi gagal
 - `401` — Token tidak ditemukan / tidak valid
-- `403` — Role tidak diizinkan (termasuk non-SUPER_ADMIN yang mencoba mengubah role menjadi `SUPER_ADMIN`)
+- `403` — Role tidak diizinkan (termasuk non-SUPER_ADMIN yang mencoba mengubah role menjadi `SUPER_ADMIN` atau `ADMIN`)
 - `404` — Anggota tidak ditemukan / divisi tidak ditemukan (`divisiId` tidak valid)
 - `409` — Email atau NIS sudah digunakan
 
@@ -298,7 +333,7 @@ List semua divisi beserta jumlah anggotanya.
 ### GET /api/divisi/:id
 Detail satu divisi + daftar anggotanya (urut nama, tanpa `password`).
 
-> **Pembatasan PII**: field sensitif anggota (`email`, `nis`, `jenisKelamin`, `noTelepon`, `alamat`) hanya disertakan untuk role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`. Role lain (mis. `ANGGOTA`) menerima item anggota tanpa field tersebut — hanya `id`, `name`, `role`, `kelas`, `createdAt`, `updatedAt`. Setara dengan gating `/api/anggota` yang ADMIN/KETUA-only.
+> **Pembatasan PII**: field sensitif anggota (`email`, `nis`, `jenisKelamin`, `noTelepon`, `alamat`) hanya disertakan untuk role selain `ANGGOTA` (SUPER_ADMIN, ADMIN, SEKRETARIS, BENDAHARA, KOORDINATOR_DIVISI, PEMBINA). Role `ANGGOTA` menerima item anggota tanpa field tersebut — hanya `id`, `name`, `role`, `kelas`, `createdAt`, `updatedAt`. Setara dengan gating `/api/anggota` yang kini diakses semua role kecuali ANGGOTA.
 
 **Response sukses (200):**
 ```json
@@ -543,7 +578,7 @@ Detail satu agenda. Semua role yang login.
 ---
 
 ### POST /api/agenda
-Tambah agenda baru. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`. Field `createdBy` diisi otomatis dari token (user yang login), bukan dari body.
+Tambah agenda baru. Role `SUPER_ADMIN`, `ADMIN`, `SEKRETARIS`, atau `KOORDINATOR_DIVISI`. Field `createdBy` diisi otomatis dari token (user yang login), bukan dari body.
 
 **Body:**
 ```json
@@ -573,7 +608,7 @@ Tambah agenda baru. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`. Field `createdBy`
 ---
 
 ### PUT /api/agenda/:id
-Edit agenda. Semua field opsional. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+Edit agenda. Semua field opsional. Role `SUPER_ADMIN`, `ADMIN`, `SEKRETARIS`, atau `KOORDINATOR_DIVISI`.
 
 **Body (semua opsional):**
 ```json
@@ -626,7 +661,7 @@ Hapus agenda. Role `SUPER_ADMIN` atau `ADMIN` saja.
 
 > Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
 > - **List & Detail** (GET): semua role yang login
-> - **Create, Update** (POST/PUT): butuh role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`
+> - **Create, Update** (POST/PUT): butuh role `SUPER_ADMIN`, `ADMIN`, atau `SEKRETARIS`
 > - **Delete**: butuh role `SUPER_ADMIN` atau `ADMIN`
 
 ### GET /api/pengumuman
@@ -748,7 +783,8 @@ Hapus pengumuman. Role `SUPER_ADMIN` atau `ADMIN` saja.
 
 > Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
 > - **Check-in & riwayat sendiri** (`POST /:agendaId/checkin`, `GET /saya`): semua role yang login
-> - **Rekap per agenda & tandai manual** (`GET /agenda/:agendaId`, `POST /:agendaId/tandai`): butuh role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`
+> - **Rekap per agenda** (`GET /agenda/:agendaId`): role `SUPER_ADMIN`, `ADMIN`, `SEKRETARIS`, `KOORDINATOR_DIVISI`, atau `PEMBINA` (tanpa `BENDAHARA` dan `ANGGOTA`)
+> - **Tandai manual** (`POST /:agendaId/tandai`): role `SUPER_ADMIN`, `ADMIN`, `SEKRETARIS`, atau `KOORDINATOR_DIVISI` (PEMBINA read-only)
 
 ### POST /api/absensi/:agendaId/checkin
 Check-in kehadiran diri sendiri untuk satu agenda. `userId` diambil dari token (bukan body), status otomatis `HADIR`, `waktuCheckIn` diisi waktu server. Semua role yang login.
@@ -803,7 +839,7 @@ Riwayat kehadiran user yang sedang login, urut berdasarkan `waktuMulai` agenda (
 ---
 
 ### GET /api/absensi/agenda/:agendaId
-Rekap kehadiran satu agenda: daftar record absensi (urut `waktuCheckIn` asc) + hitungan per status. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`. Anggota tanpa record tidak muncul di daftar (belum absen).
+Rekap kehadiran satu agenda: daftar record absensi (urut `waktuCheckIn` asc) + hitungan per status. Role `SUPER_ADMIN`, `ADMIN`, `SEKRETARIS`, `KOORDINATOR_DIVISI`, atau `PEMBINA`. Anggota tanpa record tidak muncul di daftar (belum absen).
 
 **Response sukses (200):**
 ```json
@@ -833,7 +869,7 @@ Rekap kehadiran satu agenda: daftar record absensi (urut `waktuCheckIn` asc) + h
 ---
 
 ### POST /api/absensi/:agendaId/tandai
-Tandai/koreksi kehadiran seorang user secara manual (mis. izin via WA, lupa check-in). Perilaku upsert: kalau user belum punya record di agenda itu, dibuat; kalau sudah, hanya statusnya yang diubah. Tanpa batasan waktu. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+Tandai/koreksi kehadiran seorang user secara manual (mis. izin via WA, lupa check-in). Perilaku upsert: kalau user belum punya record di agenda itu, dibuat; kalau sudah, hanya statusnya yang diubah. Tanpa batasan waktu. Role `SUPER_ADMIN`, `ADMIN`, `SEKRETARIS`, atau `KOORDINATOR_DIVISI`.
 
 **Body:**
 ```json
@@ -870,8 +906,8 @@ Tandai/koreksi kehadiran seorang user secara manual (mis. izin via WA, lupa chec
 
 > Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
 > - **List, Detail & Laporan** (GET): semua role yang login
-> - **Create, Update** (POST/PUT): butuh role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`
-> - **Delete**: butuh role `SUPER_ADMIN` atau `ADMIN`
+> - **Create, Update** (POST/PUT): **khusus role `BENDAHARA`**
+> - **Delete**: **khusus role `SUPER_ADMIN`**
 
 ### GET /api/kas
 List transaksi kas dengan paginasi, urut `tanggal` desc (terbaru dulu).
@@ -963,7 +999,7 @@ Detail satu transaksi. Semua role yang login.
 ---
 
 ### POST /api/kas
-Catat transaksi baru. `createdBy` diisi otomatis dari token. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+Catat transaksi baru. `createdBy` diisi otomatis dari token. **Khusus role `BENDAHARA`.**
 
 **Body:**
 ```json
@@ -994,7 +1030,7 @@ Catatan: `jumlah` selalu positif (rupiah bulat, tanpa sen); arah transaksi diten
 ---
 
 ### PUT /api/kas/:id
-Edit transaksi. Semua field opsional. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+Edit transaksi. Semua field opsional. **Khusus role `BENDAHARA`.**
 
 **Body (semua opsional):**
 ```json
@@ -1024,7 +1060,7 @@ Edit transaksi. Semua field opsional. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
 ---
 
 ### DELETE /api/kas/:id
-Hapus transaksi. Role `SUPER_ADMIN` atau `ADMIN` saja.
+Hapus transaksi. **Khusus role `SUPER_ADMIN`.**
 
 **Response sukses (200):**
 ```json
@@ -1197,7 +1233,7 @@ Barang yang **masih dipinjam** (ada peminjaman berstatus `DIPINJAM`) tidak bisa 
 
 > Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
 > - **List, Detail, Create** (GET/POST): semua role yang login — anggota mencatat peminjaman untuk dirinya sendiri
-> - **Kembalikan**: peminjam sendiri, atau role `SUPER_ADMIN`, `ADMIN`, `KETUA`
+> - **Kembalikan**: peminjam sendiri, atau role `SUPER_ADMIN`/`ADMIN`
 
 ### GET /api/peminjaman
 Daftar peminjaman (aktif + riwayat), urut `tanggalPinjam` desc. Semua role yang login.
@@ -1244,7 +1280,7 @@ Detail satu peminjaman. Semua role yang login.
 ---
 
 ### POST /api/peminjaman
-Catat peminjaman baru. `userId` (peminjam) diisi otomatis dari token; user dengan role `SUPER_ADMIN`, `ADMIN`, atau `KETUA` boleh mengisi `userId` di body untuk mencatatkan peminjaman orang lain. Semua role yang login.
+Catat peminjaman baru. `userId` (peminjam) diisi otomatis dari token; user dengan role `SUPER_ADMIN` atau `ADMIN` boleh mengisi `userId` di body untuk mencatatkan peminjaman orang lain. Semua role yang login.
 
 Cek stok dilakukan dalam satu transaksi: `stokTersedia = jumlah barang − Σ jumlah peminjaman aktif`. Stok tidak cukup → `409`; barang `RUSAK_BERAT` tidak bisa dipinjam → `400`.
 
@@ -1255,7 +1291,7 @@ Cek stok dilakukan dalam satu transaksi: `stokTersedia = jumlah barang − Σ ju
   "jumlah": 1,
   "keperluan": "string (opsional, min 3 max 200 karakter)",
   "tanggalPinjam": "string tanggal ISO 8601 (wajib, boleh masa depan)",
-  "userId": "string (opsional, UUID — khusus SUPER_ADMIN/ADMIN/KETUA)"
+  "userId": "string (opsional, UUID — khusus SUPER_ADMIN/ADMIN)"
 }
 ```
 
@@ -1277,7 +1313,7 @@ Cek stok dilakukan dalam satu transaksi: `stokTersedia = jumlah barang − Σ ju
 ---
 
 ### POST /api/peminjaman/:id/kembalikan
-Tandai peminjaman selesai: `status` → `DIKEMBALIKAN`, `tanggalKembali` diisi waktu server. Hanya peminjam sendiri atau role `SUPER_ADMIN`, `ADMIN`, `KETUA`.
+Tandai peminjaman selesai: `status` → `DIKEMBALIKAN`, `tanggalKembali` diisi waktu server. Hanya peminjam sendiri atau role `SUPER_ADMIN`/`ADMIN`.
 
 Ditolak (`409`) jika sudah dikembalikan, dan (`400`) jika `tanggalPinjam` masih di masa depan (menjamin `tanggalKembali > tanggalPinjam`).
 
@@ -1293,7 +1329,7 @@ Ditolak (`409`) jika sudah dikembalikan, dan (`400`) jika `tanggalPinjam` masih 
 **Response gagal:**
 - `400` — Tanggal pinjam masih di masa depan
 - `401` — Token tidak ditemukan / tidak valid
-- `403` — Bukan peminjam dan bukan SUPER_ADMIN/ADMIN/KETUA
+- `403` — Bukan peminjam dan bukan SUPER_ADMIN/ADMIN
 - `404` — Peminjaman tidak ditemukan
 - `409` — Sudah dikembalikan
 
@@ -1303,7 +1339,7 @@ Ditolak (`409`) jika sudah dikembalikan, dan (`400`) jika `tanggalPinjam` masih 
 
 > Semua endpoint butuh autentikasi (`Authorization: Bearer <token>`).
 > - **List, Detail, Vote, Hasil** (GET/POST): semua role yang login
-> - **Create, Update, Tutup, Buka** (POST/PUT): butuh role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`
+> - **Create, Update, Tutup, Buka** (POST/PUT): butuh role `SUPER_ADMIN`, `ADMIN`, atau `SEKRETARIS`
 > - **Delete**: butuh role `SUPER_ADMIN` atau `ADMIN`
 
 Hasil per pilihan hanya terlihat **setelah voting ditutup** (menghindari efek mengikuti hasil awal); total suara (turnout) terlihat kapan pun. Suara bersifat anonim di API — tidak ada endpoint yang menampilkan siapa memilih apa.
@@ -1367,7 +1403,7 @@ Detail sesi voting. Saat `TERBUKA`: daftar pilihan **tanpa** jumlah suara + flag
 ---
 
 ### POST /api/voting
-Buat sesi voting baru (langsung berstatus `TERBUKA`). Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+Buat sesi voting baru (langsung berstatus `TERBUKA`). Role `SUPER_ADMIN`, `ADMIN`, atau `SEKRETARIS`.
 
 **Body:**
 ```json
@@ -1401,7 +1437,7 @@ Buat sesi voting baru (langsung berstatus `TERBUKA`). Role `SUPER_ADMIN`, `ADMIN
 ---
 
 ### PUT /api/voting/:id
-Edit sesi: `judul`/`deskripsi` kapan pun; `pilihan` (replace semua) hanya jika belum ada suara masuk, selain itu `409`. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+Edit sesi: `judul`/`deskripsi` kapan pun; `pilihan` (replace semua) hanya jika belum ada suara masuk, selain itu `409`. Role `SUPER_ADMIN`, `ADMIN`, atau `SEKRETARIS`.
 
 **Body (semua opsional):**
 ```json
@@ -1432,7 +1468,7 @@ Hapus sesi voting beserta seluruh pilihan dan suaranya (cascade). Role `SUPER_AD
 ---
 
 ### POST /api/voting/:id/tutup
-Tutup voting: `status` → `DITUTUP`, `ditutupPada` diisi waktu server. Setelah ini hasil bisa dilihat. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+Tutup voting: `status` → `DITUTUP`, `ditutupPada` diisi waktu server. Setelah ini hasil bisa dilihat. Role `SUPER_ADMIN`, `ADMIN`, atau `SEKRETARIS`.
 
 **Response gagal:**
 - `401` / `403` / `404`
@@ -1441,7 +1477,7 @@ Tutup voting: `status` → `DITUTUP`, `ditutupPada` diisi waktu server. Setelah 
 ---
 
 ### POST /api/voting/:id/buka
-Buka kembali voting yang sudah ditutup. Role `SUPER_ADMIN`, `ADMIN`, atau `KETUA`.
+Buka kembali voting yang sudah ditutup. Role `SUPER_ADMIN`, `ADMIN`, atau `SEKRETARIS`.
 
 **Response gagal:**
 - `401` / `403` / `404`

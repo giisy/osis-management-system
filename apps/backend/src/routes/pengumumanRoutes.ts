@@ -12,8 +12,8 @@ const router = Router()
 
 router.get('/', authenticate, listPengumuman)
 router.get('/:id', authenticate, getPengumuman)
-router.post('/', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'KETUA'), createPengumuman)
-router.put('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'KETUA'), updatePengumuman)
+router.post('/', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'SEKRETARIS'), createPengumuman)
+router.put('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN', 'SEKRETARIS'), updatePengumuman)
 router.delete('/:id', authenticate, authorize('SUPER_ADMIN', 'ADMIN'), deletePengumuman)
 
 export default router

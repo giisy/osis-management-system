@@ -112,5 +112,18 @@
 - Backend: field PII anggota (`email`, `nis`, `jenisKelamin`, `noTelepon`, `alamat`) di `GET /api/divisi/:id` hanya dikirim ke SUPER_ADMIN/ADMIN/KETUA; role lain menerima daftar anggota tanpa field sensitif (setara gating `/api/anggota`)
 - Backend: global error handler di `app.ts` — error tak terduka ditangkap Express 5 dan selalu di-return JSON `{success:false}` 500 generik saat `NODE_ENV=production`; detail error hanya ke log server via `console.error`; status 4xx milik body-parser (mis. JSON rusak → 400) tetap dipertahankan
 - Verifikasi: `npm run build:local` bersih + smoke test runtime dengan database dummy (tidak menyentuh Supabase): login/register limiter benar menolak request ke-6 dengan 429, error terverifikasi kembali sebagai JSON (bukan HTML/stack)
-- Tanpa perubahan `schema.prisma` — `db push` tidak diperlukan
 - Dokumentasi: `API.md`, `DATABASE.md` & `PROGRESS.md` diperbarui
+
+## Sprint 13 — Restrukturisasi Role 4 → 7 ✅ (Selesai)
+- Database: enum `Role` 4 → 7 nilai (Sprint 13 = `SUPER_ADMIN, ADMIN, SEKRETARIS, BENDAHARA, KOORDINATOR_DIVISI, ANGGOTA, PEMBINA`; `KETUA` dihapus) — migrasi 3 fase dengan verifikasi tiap fase:
+  - Fase A: `ADD VALUE` ×4 via `prisma db push` (additive, zero risk)
+  - Fase B: data — KETUA → SUPER_ADMIN (0 baris, memang kosong) + promote ADMIN existing → SUPER_ADMIN (1 baris, mencegah deadlock hierarki H-2) via `prisma db execute`
+  - Fase C: hapus `KETUA` via type rebuild `prisma db push --accept-data-loss` (Postgres tidak punya DROP VALUE; cast fail-safe terverifikasi)
+- Backend: seluruh `authorize()` diperbarui sesuai matriks permission — anggota lihat (semua role kecuali ANGGOTA), agenda buat/edit (+SEKRETARIS, KOORDINATOR_DIVISI), pengumuman & voting buat/edit (+SEKRETARIS), absensi rekap (S/A/SEK/KOORD/PEMBINA, tanpa BENDAHARA), absensi tandai (S/A/SEK/KOORD, PEMBINA read-only), kas catat **BENDAHARA-only**, kas hapus **SUPER_ADMIN-only**
+- Backend: perluasan guard H-2 — hanya SUPER_ADMIN boleh assign role SUPER_ADMIN **atau ADMIN**; role staf lain boleh oleh SUPER_ADMIN/ADMIN (create & update anggota)
+- Backend: `peminjamanController` — override `userId` & kembalikan orang lain kini S/A saja (dulu S/A/KETUA); `divisiController` PII lihat semua role kecuali ANGGOTA
+- Backend: enum role Zod `anggotaSchema.ts` disinkronkan (tanpa KETUA, +4 role baru)
+- Keputusan ditunda ke sprint terpisah: scoping KOORDINATOR_DIVISI per-divisi, workflow approval PEMBINA, dan M-1 (authorize baca role fresh dari DB, bukan payload JWT — user yang di-promote wajib re-login; owner sudah re-login sebelum deploy)
+- Verifikasi: grep nol `KETUA` di backend + `npm run build:local` bersih
+- Frontend: role gating UI (permissions.ts, ProtectedRoute role-check, UnauthorizedPage) dikerjakan owner di commit terpisah (`2ca0bb8`)
+- Dokumentasi: `API.md` (matriks permission lengkap + role baru per endpoint), `DATABASE.md` (enum baru + catatan migrasi), `PROGRESS.md`
