@@ -3,10 +3,12 @@ import { Plus, Users, Pencil, Trash2 } from 'lucide-react'
 import { useDivisiList } from '../features/divisi/useDivisiList'
 import { useDeleteDivisi } from '../features/divisi/useDivisiMutation'
 import { isAxiosError } from 'axios'
+import { canManageDivisi, getCurrentRole } from '../lib/permissions'
 
 export default function DivisiPage() {
   const { data, isLoading, isError } = useDivisiList()
   const deleteMutation = useDeleteDivisi()
+  const canManage = canManageDivisi(getCurrentRole())
 
   const handleDelete = (id: string, nama: string) => {
     const confirmed = window.confirm(`Yakin ingin menghapus divisi "${nama}"?`)
@@ -34,13 +36,15 @@ export default function DivisiPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Divisi</h1>
-        <Link
-          to="/divisi/create"
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
-        >
-          <Plus size={16} />
-          Tambah
-        </Link>
+        {canManage && (
+          <Link
+            to="/divisi/create"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+          >
+            <Plus size={16} />
+            Tambah
+          </Link>
+        )}
       </div>
 
       {data.data.length === 0 ? (
@@ -63,20 +67,22 @@ export default function DivisiPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-1 ml-3">
-                <Link
-                  to={`/divisi/${divisi.id}/edit`}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-500"
-                >
-                  <Pencil size={16} />
-                </Link>
-                <button
-                  onClick={() => handleDelete(divisi.id, divisi.nama)}
-                  className="p-2 rounded-lg hover:bg-red-50 text-red-500"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+              {canManage && (
+                <div className="flex items-center gap-1 ml-3">
+                  <Link
+                    to={`/divisi/${divisi.id}/edit`}
+                    className="p-2 rounded-lg hover:bg-gray-100 text-gray-500"
+                  >
+                    <Pencil size={16} />
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(divisi.id, divisi.nama)}
+                    className="p-2 rounded-lg hover:bg-red-50 text-red-500"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

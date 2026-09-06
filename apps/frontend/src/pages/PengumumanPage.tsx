@@ -3,11 +3,15 @@ import { Plus, Trash2, Pencil, User } from 'lucide-react'
 import { isAxiosError } from 'axios'
 import { usePengumumanList } from '../features/pengumuman/usePengumumanList'
 import { useDeletePengumuman } from '../features/pengumuman/usePengumumanMutation'
+import { canManagePengumuman, canDeletePengumuman, getCurrentRole } from '../lib/permissions'
 import dayjs from '../lib/dayjs'
 
 export default function PengumumanPage() {
   const { data, isLoading, isError } = usePengumumanList()
   const deleteMutation = useDeletePengumuman()
+  const role = getCurrentRole()
+  const canManage = canManagePengumuman(role)
+  const canDelete = canDeletePengumuman(role)
 
   const handleDelete = (id: string, judul: string) => {
     const confirmed = window.confirm(`Yakin ingin menghapus pengumuman "${judul}"?`)
@@ -35,13 +39,15 @@ export default function PengumumanPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Pengumuman</h1>
-        <Link
-          to="/pengumuman/create"
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
-        >
-          <Plus size={16} />
-          Tambah
-        </Link>
+        {canManage && (
+          <Link
+            to="/pengumuman/create"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+          >
+            <Plus size={16} />
+            Tambah
+          </Link>
+        )}
       </div>
 
       {data.data.length === 0 ? (
@@ -66,20 +72,26 @@ export default function PengumumanPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 ml-3">
-                  <Link
-                    to={`/pengumuman/${pengumuman.id}/edit`}
-                    className="p-2 rounded-lg hover:bg-gray-100 text-gray-500"
-                  >
-                    <Pencil size={16} />
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(pengumuman.id, pengumuman.judul)}
-                    className="p-2 rounded-lg hover:bg-red-50 text-red-500"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+                {(canManage || canDelete) && (
+                  <div className="flex items-center gap-1 ml-3">
+                    {canManage && (
+                      <Link
+                        to={`/pengumuman/${pengumuman.id}/edit`}
+                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-500"
+                      >
+                        <Pencil size={16} />
+                      </Link>
+                    )}
+                    {canDelete && (
+                      <button
+                        onClick={() => handleDelete(pengumuman.id, pengumuman.judul)}
+                        className="p-2 rounded-lg hover:bg-red-50 text-red-500"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}

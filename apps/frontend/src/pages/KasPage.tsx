@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, TrendingUp, TrendingDown, Wallet } from 'lucide-react'
-import { useKasList, useLaporanKas } from '../features/kas/useKas'
+import { Plus, TrendingUp, TrendingDown, Wallet, Trash2 } from 'lucide-react'
+import { isAxiosError } from 'axios'
+import { useKasList, useLaporanKas, useDeleteKas } from '../features/kas/useKas'
 import { formatRupiah } from '../lib/formatRupiah'
+import { canManageKas, canDeleteKas, getCurrentRole } from '../lib/permissions'
 import dayjs from '../lib/dayjs'
 import type { JenisTransaksi } from '../features/kas/kasApi'
 
@@ -12,6 +14,25 @@ export default function KasPage() {
 
   const { data: laporanData, isLoading: isLaporanLoading } = useLaporanKas()
   const { data: listData, isLoading: isListLoading } = useKasList(page, 10, filterJenis)
+  const deleteMutation = useDeleteKas()
+
+  const role = getCurrentRole()
+  const canManage = canManageKas(role)
+  const canDelete = canDeleteKas(role)
+
+  const handleDelete = (id: string, keterangan: string) => {
+    const confirmed = window.confirm(`Yakin ingin menghapus transaksi "${keterangan}"?`)
+    if (!confirmed) return
+
+    deleteMutation.mutate(id, {
+      onError: (error) => {
+        const message = isAxiosError(error)
+          ? error.response?.data?.message
+          : 'Gagal menghapus transaksi.'
+        alert(message)
+      },
+    })
+  }
 
   if (isLaporanLoading || isListLoading) {
     return <p className="text-gray-500">Memuat data...</p>
@@ -24,13 +45,15 @@ export default function KasPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Kas</h1>
-        <Link
-          to="/kas/create"
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
-        >
-          <Plus size={16} />
-          Tambah
-        </Link>
+        {canManage && (
+          <Link
+            to="/kas/create"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+          >
+            <Plus size={16} />
+            Tambah
+          </Link>
+        )}
       </div>
 
       {laporan && (
@@ -115,21 +138,17 @@ export default function KasPage() {
         <p className="text-gray-500">Belum ada transaksi.</p>
       ) : (
         <div className="space-y-3">
-          {items.map((transaksi) => (
-            <Link
-              key={transaksi.id}
-              to={`/kas/${transaksi.id}/edit`}
-              className="block bg-white rounded-xl border border-gray-200 p-4"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-800">{transaksi.keterangan}</p>
+          {items.map((transaksi) => {
+            const content = (
+              <div className="flex items-center justify-between flex-1 min-w-0">
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-800 truncate">{transaksi.keterangan}</p>
                   <p className="text-xs text-gray-400 mt-1">
                     {dayjs(transaksi.tanggal).format('D MMM YYYY')} — {transaksi.creator.name}
                   </p>
                 </div>
                 <p
-                  className={`font-semibold ${
+                  className={`font-semibold ml-3 shrink-0 ${
                     transaksi.jenis === 'PEMASUKAN' ? 'text-green-600' : 'text-red-600'
                   }`}
                 >
@@ -137,8 +156,32 @@ export default function KasPage() {
                   {formatRupiah(transaksi.jumlah)}
                 </p>
               </div>
-            </Link>
-          ))}
+            )
+
+            return (
+              <div
+                key={transaksi.id}
+                className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3"
+              >
+                {canManage ? (
+                  <Link to={`/kas/${transaksi.id}/edit`} className="flex-1 min-w-0">
+                    {content}
+                  </Link>
+                ) : (
+                  content
+                )}
+
+                {canDelete && (
+                  <button
+                    onClick={() => handleDelete(transaksi.id, transaksi.keterangan)}
+                    className="p-2 rounded-lg hover:bg-red-50 text-red-500 shrink-0"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 

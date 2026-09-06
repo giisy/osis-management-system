@@ -6,6 +6,7 @@ import { api } from '../lib/axios'
 import AgendaForm from '../features/agenda/AgendaForm'
 import { useUpdateAgenda, useDeleteAgenda } from '../features/agenda/useAgendaMutation'
 import AbsensiCard from '../features/absensi/AbsensiCard'
+import { canViewRekapAbsensi, canDeleteAgenda, getCurrentRole } from '../lib/permissions'
 import type { AgendaPayload, Agenda } from '../features/agenda/agendaApi'
 
 export default function AgendaEditPage() {
@@ -14,9 +15,9 @@ export default function AgendaEditPage() {
   const updateMutation = useUpdateAgenda(id!)
   const deleteMutation = useDeleteAgenda()
 
-  const userJson = localStorage.getItem('user')
-  const user = userJson ? JSON.parse(userJson) : null
-  const canViewRekap = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'KETUA'
+  const role = getCurrentRole()
+  const canViewRekap = canViewRekapAbsensi(role)
+  const canDelete = canDeleteAgenda(role)
 
   const { data, isLoading } = useQuery({
     queryKey: ['agenda-detail', id],
@@ -70,13 +71,15 @@ export default function AgendaEditPage() {
           Kembali
         </button>
 
-        <button
-          onClick={handleDelete}
-          className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700"
-        >
-          <Trash2 size={16} />
-          Hapus
-        </button>
+        {canDelete && (
+          <button
+            onClick={handleDelete}
+            className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700"
+          >
+            <Trash2 size={16} />
+            Hapus
+          </button>
+        )}
       </div>
 
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Agenda</h1>

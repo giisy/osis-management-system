@@ -9,6 +9,7 @@ import {
   useDeleteVoting,
   useHasilVoting,
 } from '../features/voting/useVoting'
+import { canManageVoting, canDeleteVoting, getCurrentRole } from '../lib/permissions'
 import dayjs from '../lib/dayjs'
 
 export default function VotingDetailPage() {
@@ -26,9 +27,9 @@ export default function VotingDetailPage() {
 
   const { data: hasilData } = useHasilVoting(id!, isDitutup)
 
-  const userJson = localStorage.getItem('user')
-  const user = userJson ? JSON.parse(userJson) : null
-  const isPengurus = ['SUPER_ADMIN', 'ADMIN', 'KETUA'].includes(user?.role)
+  const role = getCurrentRole()
+  const canManage = canManageVoting(role)
+  const canDelete = canDeleteVoting(role)
 
   const handleVote = (pilihanId: string) => {
     voteMutation.mutate(pilihanId, {
@@ -81,7 +82,7 @@ export default function VotingDetailPage() {
           Kembali
         </button>
 
-        {isPengurus && (
+        {canDelete && (
           <button
             onClick={handleDelete}
             className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700"
@@ -112,7 +113,7 @@ export default function VotingDetailPage() {
           Dibuat oleh {voting.creator.name} — {dayjs(voting.createdAt).format('D MMM YYYY')}
         </p>
 
-        {isPengurus && (
+        {canManage && (
           <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
             {voting.status === 'TERBUKA' ? (
               <button
