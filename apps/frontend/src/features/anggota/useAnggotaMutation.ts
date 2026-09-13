@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createAnggota, updateAnggota } from './anggotaApi'
+import { createAnggota, updateAnggota, deleteAnggota } from './anggotaApi'
 import type { AnggotaFormData } from './anggotaSchema'
 
 export const useCreateAnggota = () => {
@@ -18,6 +18,17 @@ export const useUpdateAnggota = (id: string) => {
 
   return useMutation({
     mutationFn: (payload: Partial<AnggotaFormData>) => updateAnggota(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['anggota-list'] })
+    },
+  })
+}
+
+export const useDeleteAnggota = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteAnggota(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['anggota-list'] })
     },

@@ -4,6 +4,9 @@ export const anggotaSchema = z.object({
   name: z.string().min(3, 'Nama minimal 3 karakter'),
   email: z.string().email('Email tidak valid'),
   password: z.string().min(8, 'Password minimal 8 karakter').optional().or(z.literal('')),
+  role: z
+    .enum(['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS', 'BENDAHARA', 'KOORDINATOR_DIVISI', 'ANGGOTA', 'PEMBINA'])
+    .optional(),
   nis: z.string().regex(/^\d{6,}$/, 'NIS harus berupa angka minimal 6 digit').optional().or(z.literal('')),
   kelas: z.string().optional(),
   jenisKelamin: z.enum(['L', 'P']).optional(),

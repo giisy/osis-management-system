@@ -41,3 +41,8 @@ export const updateAnggota = async (id: string, payload: Partial<AnggotaFormData
   const response = await api.put(`/api/anggota/${id}`, payload)
   return response.data
 }
+
+export const deleteAnggota = async (id: string) => {
+  const response = await api.delete(`/api/anggota/${id}`)
+  return response.data
+}

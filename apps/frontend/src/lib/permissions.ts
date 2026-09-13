@@ -22,6 +22,8 @@ export const canViewAnggota = (role: Role | null) =>
   role !== null && role !== 'ANGGOTA'
 export const canManageAnggota = (role: Role | null) =>
   role === 'SUPER_ADMIN' || role === 'ADMIN'
+// H-2: hanya SUPER_ADMIN yang boleh memberikan role SUPER_ADMIN atau ADMIN ke user lain
+export const canAssignHighRole = (role: Role | null) => role === 'SUPER_ADMIN'
 
 // Divisi — semua role login boleh lihat, manage terbatas
 export const canManageDivisi = (role: Role | null) =>
