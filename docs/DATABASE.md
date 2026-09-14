@@ -19,8 +19,6 @@
 | absensi | Absensi[] | Relasi balik: riwayat absensi user |
 | transaksiDibuat | Transaksi[] | Relasi balik: transaksi kas yang dicatat user |
 | peminjaman | Peminjaman[] | Relasi balik: peminjaman oleh user |
-| votingDibuat | VotingSession[] | Relasi balik: sesi voting yang dibuat user |
-| suara | Suara[] | Relasi balik: suara yang diberikan user |
 | createdAt    | DateTime | Auto                                  |
 | updatedAt    | DateTime | Auto                                  |
 
@@ -106,47 +104,15 @@
 | createdAt      | DateTime   | Auto                                              |
 | updatedAt      | DateTime   | Auto                                              |
 
-## VotingSession
-| Field      | Type     | Keterangan                                       |
-|------------|----------|--------------------------------------------------|
-| id         | String   | UUID, primary key                                |
-| judul      | String   | Judul sesi voting                                |
-| deskripsi  | String?  | Deskripsi (opsional)                             |
-| status     | Enum     | TERBUKA, DITUTUP (default TERBUKA)               |
-| ditutupPada| DateTime?| Diisi server saat ditutup, null = masih terbuka  |
-| createdBy  | String   | FK ke User (pembuat sesi)                        |
-| createdAt  | DateTime | Auto                                             |
-| updatedAt  | DateTime | Auto                                             |
-
-## Pilihan
-| Field     | Type     | Keterangan                              |
-|-----------|----------|------------------------------------------|
-| id        | String   | UUID, primary key                        |
-| sessionId | String   | FK ke VotingSession (Cascade)            |
-| teks      | String   | Teks pilihan (max 100 karakter)          |
-| urutan    | Int      | Urutan tampil (diisi dari indeks array)  |
-| createdAt | DateTime | Auto                                     |
-| updatedAt | DateTime | Auto                                     |
-
-## Suara
-| Field     | Type     | Keterangan                                          |
-|-----------|----------|------------------------------------------------------|
-| id        | String   | UUID, primary key                                    |
-| sessionId | String   | FK ke VotingSession (Cascade)                        |
-| userId    | String   | FK ke User (pemberi suara, Restrict)                 |
-| pilihanId | String   | FK ke Pilihan (Cascade)                              |
-| createdAt | DateTime | Auto                                                 |
-| *(unique)*| —        | `(sessionId, userId)` — 1 user 1 suara per sesi      |
-
 ## Catatan Relasi
+### Sprint 14 — Penghapusan Voting
+Fitur voting dihapus seluruhnya: model `VotingSession`, `Pilihan`, `Suara` dan enum `StatusVoting` di-drop dari database (`DROP TABLE` Suara → Pilihan → VotingSession + `DROP TYPE`, via `prisma db push --accept-data-loss`, setelah kode backend & deploy baru — pola zero-window). Sebelum drop, seluruh data (2 sesi, 6 pilihan, 3 suara) di-export ke `backups/voting-export-2026-09-14.json` di luar git. Tidak ada tabel lain yang berubah: FK satu-satunya yang menunjuk ke tabel voting berasal dari dalam cluster voting itu sendiri; `Suara.userId`/`VotingSession.createdBy` → `User` ikut ter-drop bersama tabelnya (kolom FK berada di sisi voting), tabel `User` tidak tersentuh.
+
 ### Sprint 13 — Restrukturisasi Role (4 → 7)
 Enum `Role` berubah dari `SUPER_ADMIN/ADMIN/KETUA/ANGGOTA` menjadi `SUPER_ADMIN/ADMIN/SEKRETARIS/BENDAHARA/KOORDINATOR_DIVISI/ANGGOTA/PEMBINA` — tanpa perubahan kolom/tabel lain. Migrasi 3 fase: (A) `ADD VALUE` ×4 nilai baru, (B) data — `UPDATE User SET role='SUPER_ADMIN' WHERE role='KETUA'` (0 baris) dan `WHERE role='ADMIN'` (1 baris, approve owner) via `prisma db execute`, (C) hapus `KETUA` via type rebuild `prisma db push --accept-data-loss` (Postgres tidak mendukung DROP VALUE; cast `USING` fail-safe bila masih ada nilai tersisa). Hasil final: 1 SUPER_ADMIN, 4 ANGGOTA, enum 7 nilai, konsisten dengan `schema.prisma`. Catatan operasional: role di-bake di JWT saat login (7 hari, tanpa refresh) — user yang di-promote wajib re-login agar claim role baru aktif (sudah dilakukan owner sebelum deploy kode).
 
 ### Sprint 12 — Security Hardening
 **Tidak ada perubahan skema** — seluruh perbaikan hasil audit keamanan berada di level aplikasi: rate limiting endpoint auth (`express-rate-limit`), pembatasan assignment role `SUPER_ADMIN` (validasi controller), stripping field PII pada `GET /api/divisi/:id` untuk role non-privilege, dan global error handler JSON. `prisma db push` tidak diperlukan; `schema.prisma` dan database tidak tersentuh.
-
-### Sprint 11 — Voting
-Tiga model berjenjang: `VotingSession` → `Pilihan` → `Suara` (semua turunannya `Cascade`, mengikuti pola Absensi: data turunan ikut terhapus bersama induk), plus `Suara.userId` → `User` dengan `Restrict`. Unique gabungan `(sessionId, userId)` menegakkan 1 orang 1 suara per sesi di level database (controller menangkap `P2002` → `409`, pola sama dengan double check-in). `Suara` menyimpan relasi user demi integritas anti-dobel, tetapi **tidak pernah diekspos** oleh API mana pun — hasil hanya berupa agregat jumlah per pilihan, dan itu pun hanya setelah status `DITUTUP`. Perubahan skema di-apply lewat `prisma db push`, konsisten dengan Sprint 4-10.
 
 ### Sprint 10 — Inventaris
 Dua relasi di `Peminjaman`: many-to-one ke `Barang` (`onDelete: Cascade` — riwayat peminjaman adalah data turunan barang, ikut terhapus saat barang dihapus; controller tetap menolak `409` jika masih ada peminjaman aktif) dan ke `User` (`onDelete: Restrict`, konsisten pola lain). `tanggalKembali` tidak pernah diterima dari body — hanya diisi server oleh endpoint kembalikan, menjamin `tanggalKembali > tanggalPinjam`. Cek stok (`jumlah − Σ peminjaman aktif`) berjalan di level aplikasi dalam `prisma.$transaction` (bukan constraint DB): cukup akurat untuk skala OSIS tanpa kompleksitas trigger. Perubahan skema di-apply lewat `prisma db push`, konsisten dengan Sprint 4-9.

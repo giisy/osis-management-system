@@ -10,7 +10,6 @@ import absensiRoutes from './routes/absensiRoutes'
 import kasRoutes from './routes/kasRoutes'
 import inventarisRoutes from './routes/inventarisRoutes'
 import peminjamanRoutes from './routes/peminjamanRoutes'
-import votingRoutes from './routes/votingRoutes'
 
 const app = express()
 
@@ -41,7 +40,6 @@ app.use('/api/absensi', absensiRoutes)
 app.use('/api/kas', kasRoutes)
 app.use('/api/inventaris', inventarisRoutes)
 app.use('/api/peminjaman', peminjamanRoutes)
-app.use('/api/voting', votingRoutes)
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   console.error(err)

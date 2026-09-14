@@ -127,3 +127,13 @@
 - Verifikasi: grep nol `KETUA` di backend + `npm run build:local` bersih
 - Frontend: role gating UI (permissions.ts, ProtectedRoute role-check, UnauthorizedPage) dikerjakan owner di commit terpisah (`2ca0bb8`)
 - Dokumentasi: `API.md` (matriks permission lengkap + role baru per endpoint), `DATABASE.md` (enum baru + catatan migrasi), `PROGRESS.md`
+
+## Sprint 14 — Penghapusan Fitur Voting ✅ (Selesai — Fase A & B; Fase C drop DB menunggu konfirmasi deploy)
+- Keputusan: fitur voting dihapus seluruhnya dari sistem (backend + database); data historis dibackup
+- Pre-check (read-only): 2 VotingSession (keduanya DITUTUP), 6 Pilihan, 3 Suara di produksi; konfirmasi via `information_schema` bahwa tidak ada FK dari tabel lain ke cluster voting — aman di-drop
+- Fase A: export seluruh data ke `backups/voting-export-2026-09-14.json` (folder baru, di-`.gitignore`, tidak ter-commit) — terverifikasi 2+6+3 record
+- Fase B: hapus `votingRoutes.ts`, `votingController.ts`, `votingSchema.ts`; buang mount `/api/voting` dari `app.ts`; hapus model `VotingSession`/`Pilihan`/`Suara` + enum `StatusVoting` + 2 relasi balik User dari `schema.prisma`; `prisma generate` + `npm run build:local` bersih; grep nol referensi voting di backend
+- Fase C (menunggu deploy kode baru): `prisma db push --accept-data-loss` → `DROP TABLE` Suara/Pilihan/VotingSession + `DROP TYPE StatusVoting`, dengan verifikasi tabel lain utuh
+- Urutan deploy Opsi 1 (zero-window): kode di-deploy dulu, baru drop tabel — mencegah kode live men-query tabel yang sudah hilang
+- Frontend: pembersihan UI voting (3 pages, features/voting, routes, nav) dikerjakan owner
+- Dokumentasi: `API.md` (section Voting & 3 baris matriks dihapus), `DATABASE.md` (3 model dihapus, entri Sprint 11 diganti catatan Sprint 14), `PROGRESS.md`
