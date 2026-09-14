@@ -52,9 +52,3 @@ export const canDeleteKas = (role: Role | null) => role === 'SUPER_ADMIN'
 // Inventaris (Barang)
 export const canManageInventaris = (role: Role | null) =>
   role === 'SUPER_ADMIN' || role === 'ADMIN'
-
-// Voting
-export const canManageVoting = (role: Role | null) =>
-  ['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS'].includes(role ?? '')
-export const canDeleteVoting = (role: Role | null) =>
-  role === 'SUPER_ADMIN' || role === 'ADMIN'

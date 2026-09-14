@@ -23,9 +23,6 @@ import BarangEditPage from './pages/BarangEditPage'
 import PeminjamanPage from './pages/PeminjamanPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/layout/DashboardLayout'
-import VotingPage from './pages/VotingPage'
-import VotingCreatePage from './pages/VotingCreatePage'
-import VotingDetailPage from './pages/VotingDetailPage'
 import UnauthorizedPage from './pages/UnauthorizedPage'
 
 // Role yang boleh CRUD penuh Anggota (SUPER_ADMIN, ADMIN)
@@ -42,8 +39,6 @@ const PENGUMUMAN_MANAGE = ['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS'] as const
 const KAS_MANAGE = ['BENDAHARA'] as const
 // Role yang boleh manage Inventaris
 const INVENTARIS_MANAGE = ['SUPER_ADMIN', 'ADMIN'] as const
-// Voting buat/edit sesi (Penuh + Buat/Edit)
-const VOTING_MANAGE = ['SUPER_ADMIN', 'ADMIN', 'SEKRETARIS'] as const
 
 // Redirect cerdas untuk path root ("/") dan path tidak dikenal (catch-all).
 // Tidak bisa pakai ProtectedRoute di sini karena ProtectedRoute hanya
@@ -266,37 +261,6 @@ function App() {
             <ProtectedRoute>
               <DashboardLayout>
                 <PeminjamanPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        {/* Voting — lihat & vote: semua role. Buat/edit sesi: dibatasi */}
-        <Route
-          path="/voting"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <VotingPage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/voting/create"
-          element={
-            <ProtectedRoute allowedRoles={[...VOTING_MANAGE]}>
-              <DashboardLayout>
-                <VotingCreatePage />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/voting/:id"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <VotingDetailPage />
               </DashboardLayout>
             </ProtectedRoute>
           }

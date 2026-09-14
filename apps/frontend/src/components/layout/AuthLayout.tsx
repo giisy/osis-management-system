@@ -26,7 +26,7 @@ export default function AuthLayout({ title, subtitle, children }: AuthLayoutProp
           </div>
 
           <h1 className="text-3xl font-semibold text-white mt-16 leading-snug max-w-xs">
-            Kelola agenda, kas, dan voting organisasi dalam satu tempat.
+            Kelola agenda, kas, dan pengumuman organisasi dalam satu tempat.
           </h1>
           <p className="text-slate-400 mt-4 max-w-xs text-sm leading-relaxed">
             Satu dashboard untuk seluruh kegiatan OSIS — dari rapat sampai laporan keuangan.
