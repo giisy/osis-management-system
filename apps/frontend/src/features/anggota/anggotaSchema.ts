@@ -11,7 +11,6 @@ export const anggotaSchema = z.object({
   kelas: z.string().optional(),
   jenisKelamin: z.enum(['L', 'P']).optional(),
   noTelepon: z.string().optional(),
-  alamat: z.string().optional(),
   divisiId: z
     .string()
     .uuid()

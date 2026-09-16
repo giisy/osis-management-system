@@ -32,10 +32,12 @@ export default function AnggotaCard({ anggota }: AnggotaCardProps) {
       </div>
 
       <div className="space-y-1 mt-3 text-sm text-gray-500">
-        <div className="flex items-center gap-2">
-          <Mail size={14} />
-          <span className="truncate">{anggota.email}</span>
-        </div>
+        {anggota.email && (
+          <div className="flex items-center gap-2">
+            <Mail size={14} />
+            <span className="truncate">{anggota.email}</span>
+          </div>
+        )}
         {anggota.noTelepon && (
           <div className="flex items-center gap-2">
             <Phone size={14} />

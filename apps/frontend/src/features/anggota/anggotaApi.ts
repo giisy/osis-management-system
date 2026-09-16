@@ -4,14 +4,14 @@ import type { AnggotaFormData } from './anggotaSchema'
 export interface Anggota {
   id: string
   name: string
-  email: string
+  email?: string
   role: string
-  nis: string | null
+  nis?: string | null
   kelas: string | null
-  jenisKelamin: string | null
-  noTelepon: string | null
-  alamat: string | null
-  divisi: { id: string; nama: string } | null
+  jenisKelamin?: string | null
+  noTelepon?: string | null
+  alamat?: string | null
+  divisi?: { id: string; nama: string } | null
   createdAt: string
 }
 

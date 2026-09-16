@@ -49,7 +49,6 @@ export default function AnggotaForm({
           kelas: defaultValues.kelas ?? '',
           jenisKelamin: (defaultValues.jenisKelamin as 'L' | 'P') ?? undefined,
           noTelepon: defaultValues.noTelepon ?? '',
-          alamat: defaultValues.alamat ?? '',
           divisiId: defaultValues.divisi?.id ?? '',
         }
       : undefined,
@@ -150,15 +149,6 @@ export default function AnggotaForm({
         <label className="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
         <input
           {...register('noTelepon')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Alamat</label>
-        <textarea
-          {...register('alamat')}
-          rows={2}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>

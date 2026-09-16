@@ -20,6 +20,13 @@ export const getAgendaList = async () => {
   return response.data
 }
 
+export const getUpcomingAgenda = async (limit: number = 5) => {
+  const response = await api.get<AgendaListResponse>('/api/agenda/upcoming', {
+    params: { limit },
+  })
+  return response.data
+}
+
 export interface AgendaPayload {
   judul: string
   deskripsi?: string
